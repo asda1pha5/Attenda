@@ -38,9 +38,9 @@ export default function SubmissionsTable({ eventId }) {
   }, [eventId]);
 
   function exportCsv() {
-    const header = 'Name,Attending,Number,Submitted At\n';
+    const header = 'Name,Email,Phone,Attending,Number,Submitted At\n';
     const body = rows
-      .map((r) => `"${r.guest_name}","${r.attending}",${r.number_attending},"${new Date(r.created_at).toLocaleString()}"`)
+      .map((r) => `"${r.guest_name}","${r.guest_email || ''}","${r.guest_phone || ''}","${r.attending}",${r.number_attending},"${new Date(r.created_at).toLocaleString()}"`)
       .join('\n');
     const blob = new Blob([header + body], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -66,6 +66,8 @@ export default function SubmissionsTable({ eventId }) {
         <thead>
           <tr>
             <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
             <th>Attending</th>
             <th># Guests</th>
             <th>Submitted</th>
@@ -75,6 +77,8 @@ export default function SubmissionsTable({ eventId }) {
           {rows.map((r) => (
             <tr key={r.id}>
               <td>{r.guest_name}</td>
+              <td>{r.guest_email || '—'}</td>
+              <td>{r.guest_phone || '—'}</td>
               <td>{r.attending}</td>
               <td>{r.number_attending}</td>
               <td>{new Date(r.created_at).toLocaleString()}</td>

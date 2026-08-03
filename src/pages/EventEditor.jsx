@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
@@ -28,6 +28,10 @@ function slugify(text) {
     .replace(/(^-|-$)/g, '');
 }
 
+function clamp(val, min, max) {
+  return Math.min(max, Math.max(min, val));
+}
+
 export default function EventEditor() {
   const { user, isAdmin } = useAuth();
   const { id } = useParams();
@@ -38,6 +42,9 @@ export default function EventEditor() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const previewRef = useRef(null);
+  const dragState = useRef(null); // { mode: 'move'|'resize', startX, startY, box... }
 
   useEffect(() => {
     if (isEditing) loadEvent();
@@ -69,13 +76,70 @@ export default function EventEditor() {
     setUploading(false);
   }
 
+  // ---------- Drag / resize the RSVP box directly on the flyer preview ----------
+  function startDrag(e, mode) {
+    e.preventDefault();
+    e.stopPropagation();
+    const point = e.touches ? e.touches[0] : e;
+    dragState.current = {
+      mode,
+      startX: point.clientX,
+      startY: point.clientY,
+      startBox: { top: form.box_top, left: form.box_left, width: form.box_width, height: form.box_height },
+    };
+    window.addEventListener('mousemove', onDragMove);
+    window.addEventListener('mouseup', onDragEnd);
+    window.addEventListener('touchmove', onDragMove, { passive: false });
+    window.addEventListener('touchend', onDragEnd);
+  }
+
+  function onDragMove(e) {
+    if (!dragState.current || !previewRef.current) return;
+    e.preventDefault();
+    const point = e.touches ? e.touches[0] : e;
+    const rect = previewRef.current.getBoundingClientRect();
+    const dxPct = ((point.clientX - dragState.current.startX) / rect.width) * 100;
+    const dyPct = ((point.clientY - dragState.current.startY) / rect.height) * 100;
+    const { mode, startBox } = dragState.current;
+
+    if (mode === 'move') {
+      const newLeft = clamp(startBox.left + dxPct, 0, 100 - startBox.width);
+      const newTop = clamp(startBox.top + dyPct, 0, 100 - startBox.height);
+      setForm((f) => ({ ...f, box_left: Math.round(newLeft * 10) / 10, box_top: Math.round(newTop * 10) / 10 }));
+    } else if (mode === 'resize') {
+      const newWidth = clamp(startBox.width + dxPct, 10, 100 - startBox.left);
+      const newHeight = clamp(startBox.height + dyPct, 10, 100 - startBox.top);
+      setForm((f) => ({ ...f, box_width: Math.round(newWidth * 10) / 10, box_height: Math.round(newHeight * 10) / 10 }));
+    }
+  }
+
+  function onDragEnd() {
+    dragState.current = null;
+    window.removeEventListener('mousemove', onDragMove);
+    window.removeEventListener('mouseup', onDragEnd);
+    window.removeEventListener('touchmove', onDragMove);
+    window.removeEventListener('touchend', onDragEnd);
+  }
+
   async function handleSave(e) {
     e.preventDefault();
     setError('');
+
+    if (!form.event_date) {
+      setError('Please choose a date.');
+      return;
+    }
+
     setSaving(true);
 
     const slug = form.slug || slugify(form.title);
-    const payload = { ...form, slug, customer_id: form.customer_id || user.id };
+    const payload = {
+      ...form,
+      slug,
+      customer_id: form.customer_id || user.id,
+      // Postgres rejects an empty string for a date column — send null instead
+      event_date: form.event_date || null,
+    };
     delete payload.id;
     delete payload.created_at;
 
@@ -88,7 +152,11 @@ export default function EventEditor() {
 
     setSaving(false);
     if (result.error) {
-      setError(result.error.message);
+      if (result.error.message.toLowerCase().includes('date')) {
+        setError('Please choose a valid date.');
+      } else {
+        setError(result.error.message);
+      }
     } else {
       navigate(isAdmin ? '/admin' : '/hub');
     }
@@ -135,6 +203,7 @@ export default function EventEditor() {
               type="date"
               value={form.event_date || ''}
               onChange={(e) => updateField('event_date', e.target.value)}
+              required
             />
           </label>
           <label>
@@ -178,41 +247,58 @@ export default function EventEditor() {
           <input type="file" accept="image/*" onChange={handleImageUpload} />
         </label>
         {uploading && <div className="muted">Uploading…</div>}
+
         {form.image_url && (
-          <div className="flyer-preview">
-            <img src={form.image_url} alt="Flyer preview" />
-            <div
-              className="flyer-preview-box"
-              style={{
-                top: `${form.box_top}%`,
-                left: `${form.box_left}%`,
-                width: `${form.box_width}%`,
-                height: `${form.box_height}%`,
-              }}
-            >
-              RSVP box
+          <>
+            <p className="section-label">
+              Drag the box into place, drag the corner handle to resize — or use the sliders/numbers below.
+            </p>
+            <div className="flyer-preview" ref={previewRef}>
+              <img src={form.image_url} alt="Flyer preview" draggable={false} />
+              <div
+                className="flyer-preview-box draggable"
+                style={{
+                  top: `${form.box_top}%`,
+                  left: `${form.box_left}%`,
+                  width: `${form.box_width}%`,
+                  height: `${form.box_height}%`,
+                }}
+                onMouseDown={(e) => startDrag(e, 'move')}
+                onTouchStart={(e) => startDrag(e, 'move')}
+              >
+                RSVP box
+                <div
+                  className="resize-handle"
+                  onMouseDown={(e) => startDrag(e, 'resize')}
+                  onTouchStart={(e) => startDrag(e, 'resize')}
+                />
+              </div>
             </div>
-          </div>
+          </>
         )}
 
-        <p className="section-label">Position the RSVP box over the flyer's blank space (%)</p>
-        <div className="form-grid four-col">
-          <label>
-            Top
+        <p className="section-label">Fine-tune position &amp; size (%)</p>
+        <div className="box-controls-grid">
+          <div className="box-control">
+            <label>Top</label>
+            <input type="range" min="0" max="100" value={form.box_top} onChange={(e) => updateField('box_top', Number(e.target.value))} />
             <input type="number" value={form.box_top} onChange={(e) => updateField('box_top', Number(e.target.value))} />
-          </label>
-          <label>
-            Left
+          </div>
+          <div className="box-control">
+            <label>Left</label>
+            <input type="range" min="0" max="100" value={form.box_left} onChange={(e) => updateField('box_left', Number(e.target.value))} />
             <input type="number" value={form.box_left} onChange={(e) => updateField('box_left', Number(e.target.value))} />
-          </label>
-          <label>
-            Width
+          </div>
+          <div className="box-control">
+            <label>Width</label>
+            <input type="range" min="10" max="100" value={form.box_width} onChange={(e) => updateField('box_width', Number(e.target.value))} />
             <input type="number" value={form.box_width} onChange={(e) => updateField('box_width', Number(e.target.value))} />
-          </label>
-          <label>
-            Height
+          </div>
+          <div className="box-control">
+            <label>Height</label>
+            <input type="range" min="10" max="100" value={form.box_height} onChange={(e) => updateField('box_height', Number(e.target.value))} />
             <input type="number" value={form.box_height} onChange={(e) => updateField('box_height', Number(e.target.value))} />
-          </label>
+          </div>
         </div>
 
         <label className="checkbox-label">

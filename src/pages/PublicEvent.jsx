@@ -7,6 +7,8 @@ export default function PublicEvent() {
   const [event, setEvent] = useState(null);
   const [notFound, setNotFound] = useState(false);
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [numberAttending, setNumberAttending] = useState(1);
   const [attending, setAttending] = useState('');
   const [status, setStatus] = useState('idle'); // idle | sending | done | error
@@ -34,6 +36,8 @@ export default function PublicEvent() {
     const { error } = await supabase.from('rsvps').insert({
       event_id: event.id,
       guest_name: name,
+      guest_email: email,
+      guest_phone: phone || null,
       number_attending: numberAttending,
       attending,
     });
@@ -82,6 +86,19 @@ export default function PublicEvent() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <input
+                type="tel"
+                placeholder="Phone (optional)"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
               <div className="field-row">
                 <input

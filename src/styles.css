@@ -147,8 +147,8 @@ body {
 .section-label { font-size: 13px; color: #77826f; margin: 16px 0 8px; }
 .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; margin: 16px 0; }
 
-.flyer-preview { position: relative; max-width: 320px; margin: 14px 0; line-height: 0; }
-.flyer-preview img { width: 100%; border-radius: 6px; }
+.flyer-preview { position: relative; max-width: 320px; margin: 14px 0; line-height: 0; user-select: none; }
+.flyer-preview img { width: 100%; border-radius: 6px; display: block; }
 .flyer-preview-box {
   position: absolute;
   border: 2px dashed #b3452f;
@@ -158,6 +158,33 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.flyer-preview-box.draggable {
+  cursor: move;
+  touch-action: none;
+}
+.resize-handle {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 14px;
+  height: 14px;
+  background: #b3452f;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.box-controls-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 14px; }
+.box-control { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #3f4a3f; }
+.box-control input[type="range"] { width: 100%; }
+.box-control input[type="number"] {
+  width: 70px;
+  padding: 4px 6px;
+  border: 1px solid #d5dbd0;
+  border-radius: 6px;
+  font-size: 13px;
 }
 
 /* ---------- Public RSVP page (matches the flyer aesthetic) ---------- */
