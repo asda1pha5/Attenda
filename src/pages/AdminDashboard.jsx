@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
 import SubmissionsTable from '../components/SubmissionsTable';
+import { usePageTitle } from '../lib/usePageTitle';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function AdminDashboard() {
+  usePageTitle('Admin Events');
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -47,6 +50,7 @@ export default function AdminDashboard() {
           <p className="muted">{customers.length} customers · {events.length} events</p>
         </div>
         <div className="header-actions">
+          <ThemeToggle />
           <Link to="/hub" className="secondary-btn">My Own Hub</Link>
           <button className="secondary-btn" onClick={handleSignOut}>Sign Out</button>
         </div>

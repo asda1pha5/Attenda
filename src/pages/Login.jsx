@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
+import { usePageTitle } from '../lib/usePageTitle';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
+  usePageTitle(mode === 'signin' ? 'Sign In' : 'Create Account');
 
   // If a session already exists (e.g. we just signed in, or the page
   // was reloaded while logged in), leave the login page automatically.
@@ -45,7 +47,7 @@ export default function Login() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>RSVP Hub</h1>
+        <h1>Attenda</h1>
         <p className="auth-sub">{mode === 'signin' ? 'Sign in to your hub' : 'Create your account'}</p>
 
         <form onSubmit={handleSubmit}>

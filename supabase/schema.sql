@@ -39,12 +39,18 @@ create table public.events (
   address text,
   registry_link text,
   image_url text,
+  audio_url text,
   box_top numeric default 72,
   box_left numeric default 4,
   box_width numeric default 92,
   box_height numeric default 25,
+  box_mode text not null default 'below' check (box_mode in ('above', 'below', 'left', 'right', 'overlay')),
+  show_image boolean not null default true,
   theme_color text default '#6d7f6a',
   accent_color text default '#d8b98c',
+  rsvp_title text not null default 'Please RSVP',
+  rsvp_subtitle text,
+  registry_position text not null default 'bottom' check (registry_position in ('top', 'bottom')),
   is_published boolean not null default true,
   created_at timestamptz not null default now()
 );
