@@ -64,6 +64,7 @@ export default function CustomerDashboard() {
                 <p className="muted">
                   {ev.event_date ? new Date(ev.event_date).toLocaleDateString() : 'No date set'}
                   {ev.event_time ? ` · ${ev.event_time}` : ''}
+                  {ev.event_end_time ? ` – ${ev.event_end_time}` : ''}
                 </p>
                 <p className="event-link">
                   <code>/e/{ev.slug}</code>

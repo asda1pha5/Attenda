@@ -11,6 +11,7 @@ const emptyEvent = {
   slug: '',
   event_date: '',
   event_time: '',
+  event_end_time: '',
   address: '',
   registry_link: '',
   registry_position: 'bottom',
@@ -39,6 +40,26 @@ function slugify(text) {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function safeFileName(name) {
+  return name
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+}
+
+function normalizeTime(value) {
+  if (!value?.trim()) return '';
+  const match = value.trim().match(/^(\d{1,2})(?::(\d{1,2}))?\s*([ap])\.?m\.?$/i);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2] ?? 0);
+  if (hours < 1 || hours > 12 || minutes > 59) return null;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${match[3].toUpperCase()}M`;
 }
 
 export default function EventEditor() {
@@ -74,7 +95,7 @@ export default function EventEditor() {
     if (!file) return;
     setUploading(true);
     setError('');
-    const path = `${user.id}/${Date.now()}-${file.name}`;
+    const path = `${user.id}/${Date.now()}-${safeFileName(file.name) || 'event-image'}`;
     const { error: uploadError } = await supabase.storage.from('event-images').upload(path, file);
     if (uploadError) {
       setError(uploadError.message);
@@ -98,7 +119,7 @@ export default function EventEditor() {
     if (!file) return;
     setUploading(true);
     setError('');
-    const path = `${user.id}/audio/${Date.now()}-${file.name}`;
+    const path = `${user.id}/audio/${Date.now()}-${safeFileName(file.name) || 'event-audio'}`;
     const { error: uploadError } = await supabase.storage.from('event-images').upload(path, file);
     if (uploadError) {
       setError(uploadError.message);
@@ -180,6 +201,17 @@ export default function EventEditor() {
       return;
     }
 
+    const startTime = normalizeTime(form.event_time);
+    const endTime = normalizeTime(form.event_end_time);
+    if (form.event_time && !startTime) {
+      setError('Start time must include AM or PM, for example 5:00 PM.');
+      return;
+    }
+    if (form.event_end_time && !endTime) {
+      setError('End time must include AM or PM, for example 8:00 PM.');
+      return;
+    }
+
     setSaving(true);
 
     const slug = form.slug || slugify(form.title);
@@ -189,6 +221,8 @@ export default function EventEditor() {
       customer_id: form.customer_id || user.id,
       // Postgres rejects an empty string for a date column — send null instead
       event_date: form.event_date || null,
+      event_time: startTime,
+      event_end_time: endTime,
     };
     delete payload.id;
     delete payload.created_at;
@@ -257,12 +291,29 @@ export default function EventEditor() {
             />
           </label>
           <label>
-            Time
+            Start Time
             <input
               type="text"
               placeholder="5:00 PM"
               value={form.event_time || ''}
               onChange={(e) => updateField('event_time', e.target.value)}
+              onBlur={(e) => {
+                const value = normalizeTime(e.target.value);
+                if (value) updateField('event_time', value);
+              }}
+            />
+          </label>
+          <label>
+            End Time
+            <input
+              type="text"
+              placeholder="8:00 PM"
+              value={form.event_end_time || ''}
+              onChange={(e) => updateField('event_end_time', e.target.value)}
+              onBlur={(e) => {
+                const value = normalizeTime(e.target.value);
+                if (value) updateField('event_end_time', value);
+              }}
             />
           </label>
           <label>

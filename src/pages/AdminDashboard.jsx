@@ -14,6 +14,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [openEventId, setOpenEventId] = useState(null);
   const [filterCustomer, setFilterCustomer] = useState('all');
+  const [customerSearch, setCustomerSearch] = useState('');
 
   useEffect(() => {
     loadAll();
@@ -39,8 +40,12 @@ export default function AdminDashboard() {
     return c?.full_name || c?.email || 'Unknown';
   };
 
-  const filteredEvents =
-    filterCustomer === 'all' ? events : events.filter((e) => e.customer_id === filterCustomer);
+  const normalizedSearch = customerSearch.trim().toLowerCase();
+  const filteredEvents = events.filter((event) => {
+    const matchesSelectedCustomer = filterCustomer === 'all' || event.customer_id === filterCustomer;
+    const owner = customerName(event.customer_id).toLowerCase();
+    return matchesSelectedCustomer && (!normalizedSearch || owner.includes(normalizedSearch));
+  });
 
   return (
     <div className="dashboard">
@@ -57,6 +62,30 @@ export default function AdminDashboard() {
       </header>
 
       <div className="admin-filter">
+        <label className="customer-search">
+          Search customers:
+          <input
+            type="search"
+            list="customer-suggestions"
+            placeholder="Start typing a name or email"
+            value={customerSearch}
+            onChange={(e) => {
+              const value = e.target.value;
+              setCustomerSearch(value);
+              const matchedCustomer = customers.find((customer) =>
+                [customer.full_name, customer.email].filter(Boolean).some((item) => item.toLowerCase() === value.toLowerCase())
+              );
+              setFilterCustomer(matchedCustomer?.id || 'all');
+            }}
+          />
+          <datalist id="customer-suggestions">
+            {customers.map((customer) => (
+              <option key={customer.id} value={customer.full_name || customer.email}>
+                {customer.email}
+              </option>
+            ))}
+          </datalist>
+        </label>
         <label>
           Filter by customer:
           <select value={filterCustomer} onChange={(e) => setFilterCustomer(e.target.value)}>
@@ -81,7 +110,8 @@ export default function AdminDashboard() {
                 <p className="muted">Owner: {customerName(ev.customer_id)}</p>
                 <p className="muted">
                   {ev.event_date ? new Date(ev.event_date).toLocaleDateString() : 'No date set'}
-                  {ev.event_time ? ` · ${ev.event_time}` : ''} · {ev.is_published ? 'Published' : 'Draft'}
+                  {ev.event_time ? ` · ${ev.event_time}` : ''}
+                  {ev.event_end_time ? ` – ${ev.event_end_time}` : ''} · {ev.is_published ? 'Published' : 'Draft'}
                 </p>
                 <p className="event-link">
                   <code>/e/{ev.slug}</code>

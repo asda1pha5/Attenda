@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { usePageTitle } from '../lib/usePageTitle';
 
@@ -142,6 +142,9 @@ export default function PublicEvent() {
           </audio>
         )}
       </div>
+      <Link to="/login?mode=signup" className="create-invite-cta">
+        Want to make your own invite? <span>Click here</span>
+      </Link>
     </div>
   );
 }

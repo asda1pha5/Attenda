@@ -36,6 +36,7 @@ create table public.events (
   subtitle text,
   event_date date,
   event_time text,
+  event_end_time text,
   address text,
   registry_link text,
   image_url text,

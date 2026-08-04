@@ -133,6 +133,14 @@ body {
 
 .admin-filter { margin-bottom: 16px; }
 .admin-filter select { margin-left: 8px; padding: 6px 10px; border-radius: 6px; border: 1px solid #d5dbd0; }
+.customer-search { display: inline-flex; align-items: center; gap: 8px; margin-right: 16px; }
+.customer-search input {
+  min-width: min(280px, 70vw);
+  padding: 7px 10px;
+  border: 1px solid #d5dbd0;
+  border-radius: 7px;
+  font: inherit;
+}
 
 /* ---------- Submissions table ---------- */
 .submissions-toolbar {
@@ -335,6 +343,25 @@ body {
   box-shadow: 0 12px 32px rgba(0,0,0,0.18);
 }
 .event-audio { width: min(100%, 420px); margin-top: 18px; height: 36px; }
+.create-invite-cta {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 10;
+  max-width: min(330px, calc(100vw - 40px));
+  padding: 12px 16px;
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 999px;
+  background: rgba(38, 52, 42, 0.94);
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.2);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.create-invite-cta span { text-decoration: underline; font-weight: 700; }
+.create-invite-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.24); }
 .rsvp-box h2 {
   margin: 0 0 20px;
   font-size: clamp(18px, 2vw, 23px);
@@ -448,3 +475,4 @@ body.dashboard-dark-mode .secondary-btn { background: #3a4b3e; color: #f0f5ef; }
 body.dashboard-dark-mode .event-link code { background: #1b241e; color: #dceadd; }
 body.dashboard-dark-mode .form-section { border-color: #3c4c40; }
 body.dashboard-dark-mode .theme-toggle { background: #364759; color: #e8eff6; }
+body.dashboard-dark-mode .customer-search input { background: #1c251f; color: #edf3ed; border-color: #526252; }
