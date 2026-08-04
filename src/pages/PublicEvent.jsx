@@ -69,6 +69,8 @@ export default function PublicEvent() {
             left: `${event.box_left}%`,
             width: `${event.box_width}%`,
             height: `${event.box_height}%`,
+            '--theme': event.theme_color || '#6d7f6a',
+            '--accent': event.accent_color || '#d8b98c',
           }}
         >
           <h2>Please RSVP</h2>

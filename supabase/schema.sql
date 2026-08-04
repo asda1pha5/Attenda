@@ -44,6 +44,7 @@ create table public.events (
   box_width numeric default 92,
   box_height numeric default 25,
   theme_color text default '#6d7f6a',
+  accent_color text default '#d8b98c',
   is_published boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -53,6 +54,8 @@ create table public.rsvps (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references public.events(id) on delete cascade,
   guest_name text not null,
+  guest_email text not null,
+  guest_phone text,
   number_attending int default 1,
   attending text check (attending in ('Yes','No')),
   created_at timestamptz not null default now()

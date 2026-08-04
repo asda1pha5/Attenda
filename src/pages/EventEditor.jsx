@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
+import { extractPalette } from '../lib/extractPalette';
 
 const emptyEvent = {
   title: '',
@@ -17,6 +18,7 @@ const emptyEvent = {
   box_width: 92,
   box_height: 25,
   theme_color: '#6d7f6a',
+  accent_color: '#d8b98c',
   is_published: true,
 };
 
@@ -74,6 +76,12 @@ export default function EventEditor() {
     const { data } = supabase.storage.from('event-images').getPublicUrl(path);
     updateField('image_url', data.publicUrl);
     setUploading(false);
+
+    const palette = await extractPalette(data.publicUrl);
+    if (palette) {
+      updateField('theme_color', palette.theme);
+      updateField('accent_color', palette.accent);
+    }
   }
 
   // ---------- Drag / resize the RSVP box directly on the flyer preview ----------
@@ -238,6 +246,14 @@ export default function EventEditor() {
               type="color"
               value={form.theme_color || '#6d7f6a'}
               onChange={(e) => updateField('theme_color', e.target.value)}
+            />
+          </label>
+          <label>
+            Accent Color
+            <input
+              type="color"
+              value={form.accent_color || '#d8b98c'}
+              onChange={(e) => updateField('accent_color', e.target.value)}
             />
           </label>
         </div>
