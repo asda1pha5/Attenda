@@ -273,7 +273,10 @@ body {
 }
 .public-card-wrap {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  min-height: 100vh;
   padding: clamp(16px, 4vw, 48px) 16px;
   font-family: 'Georgia', 'Times New Roman', serif;
 }
@@ -287,7 +290,10 @@ body {
 }
 .event-flyer {
   width: 100%;
+  max-height: calc(100vh - 72px);
   display: block;
+  object-fit: contain;
+  justify-self: center;
   border-radius: 10px;
   box-shadow: 0 12px 34px rgba(0,0,0,0.16);
   animation: invitation-flyer-in 520ms ease-out both;
@@ -296,6 +302,11 @@ body {
 .public-card.layout-below { grid-template-columns: minmax(0, 640px); max-width: 640px; }
 .public-card.layout-standalone { grid-template-columns: minmax(0, 480px); max-width: 480px; }
 .public-card.layout-left { grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.35fr); }
+.public-card.layout-left.has-event-details,
+.public-card.layout-right.has-event-details {
+  grid-template-columns: minmax(250px, 0.9fr) minmax(0, 1.35fr) minmax(180px, 0.65fr);
+  max-width: 1320px;
+}
 .public-card.layout-overlay { display: block; position: relative; max-width: 640px; }
 .public-card.layout-above .rsvp-box,
 .public-card.layout-below .rsvp-box { min-height: 280px; }
@@ -343,6 +354,18 @@ body {
   box-shadow: 0 12px 32px rgba(0,0,0,0.18);
 }
 .event-audio { width: min(100%, 420px); margin-top: 18px; height: 36px; }
+.event-details-panel {
+  padding: 24px 16px;
+  color: #3e4d40;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  line-height: 1.45;
+  animation: invitation-rsvp-in 560ms 160ms ease-out both;
+}
+.event-details-panel h1 { margin: 0 0 12px; font-size: clamp(18px, 2vw, 25px); line-height: 1.15; color: var(--theme, #57685a); }
+.event-details-panel p { margin: 0 0 8px; font-size: 14px; }
+.event-details-panel .event-details-label { margin-bottom: 10px; color: var(--theme, #57685a); font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; }
+.event-details-panel .event-details-time { font-weight: 700; color: var(--theme, #57685a); }
+.public-card-wrap > .event-details-panel { max-width: 560px; text-align: center; }
 .create-invite-cta {
   position: fixed;
   right: 20px;
@@ -451,6 +474,7 @@ body {
   .event-flyer { width: 100%; }
   .rsvp-box { width: calc(100% - 16px); min-height: 0; margin-top: -8px; }
   .public-card.layout-overlay .rsvp-box.overlay { position: relative; top: auto !important; left: auto !important; width: calc(100% - 16px) !important; margin-top: -8px; }
+  .event-details-panel { width: 100%; padding: 22px 16px 6px; text-align: center; }
   .rsvp-box::before { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {

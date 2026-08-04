@@ -113,6 +113,25 @@ export default function PublicEvent() {
 
   const image = hasImage && <img className="event-flyer" src={event.image_url} alt={event.title} />;
   const rsvpFirst = layout === 'above' || layout === 'left' || layout === 'standalone';
+  const isSplitLayout = layout === 'left' || layout === 'right';
+  const formattedDate = event.event_date
+    ? new Date(`${event.event_date}T12:00:00`).toLocaleDateString(undefined, {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+    })
+    : '';
+  const eventDetails = (formattedDate || event.event_time || event.address) && (
+    <aside className="event-details-panel">
+      <p className="event-details-label">Event details</p>
+      {event.title && <h1>{event.title}</h1>}
+      {formattedDate && <p>{formattedDate}</p>}
+      {event.event_time && (
+        <p className="event-details-time">
+          {event.event_time}{event.event_end_time ? ` – ${event.event_end_time}` : ''}
+        </p>
+      )}
+      {event.address && <p>{event.address}</p>}
+    </aside>
+  );
   const overlayStyle = {
     top: `${event.box_top ?? 25}%`,
     left: `${event.box_left ?? 11}%`,
@@ -122,11 +141,23 @@ export default function PublicEvent() {
   return (
     <div className="public-page" style={cssVars}>
       <div className="public-card-wrap">
-        <div className={`public-card is-loaded layout-${layout}`}>
+        <div className={`public-card is-loaded layout-${layout} ${eventDetails ? 'has-event-details' : ''}`}>
           {layout === 'overlay' ? (
             <>
               {image}
               {rsvpBox('overlay', overlayStyle)}
+            </>
+          ) : layout === 'left' ? (
+            <>
+              {rsvpBox()}
+              {image}
+              {eventDetails}
+            </>
+          ) : layout === 'right' ? (
+            <>
+              {eventDetails}
+              {image}
+              {rsvpBox()}
             </>
           ) : (
             <>
@@ -136,6 +167,7 @@ export default function PublicEvent() {
             </>
           )}
         </div>
+        {!isSplitLayout && eventDetails}
         {event.audio_url && (
           <audio className="event-audio" src={event.audio_url} autoPlay controls preload="auto">
             Your browser does not support audio playback.
