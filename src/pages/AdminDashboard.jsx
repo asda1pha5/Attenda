@@ -5,6 +5,7 @@ import { useAuth } from '../lib/useAuth';
 import SubmissionsTable from '../components/SubmissionsTable';
 import { usePageTitle } from '../lib/usePageTitle';
 import ThemeToggle from '../components/ThemeToggle';
+import AppBrand from '../components/AppBrand';
 
 export default function AdminDashboard() {
   usePageTitle('Admin Events');
@@ -51,6 +52,7 @@ export default function AdminDashboard() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
+          <AppBrand to="/admin" />
           <h1>Admin — All Events</h1>
           <p className="muted">{customers.length} customers · {events.length} events</p>
         </div>

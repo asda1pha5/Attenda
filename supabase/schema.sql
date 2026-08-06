@@ -49,6 +49,7 @@ create table public.events (
   show_image boolean not null default true,
   theme_color text default '#6d7f6a',
   accent_color text default '#d8b98c',
+  flyer_background text not null default 'ivory' check (flyer_background in ('ivory', 'sage', 'blush', 'sky', 'butter', 'sand', 'lilac', 'peach', 'mist', 'ocean', 'berry', 'midnight')),
   rsvp_title text not null default 'Please RSVP',
   rsvp_subtitle text,
   registry_position text not null default 'bottom' check (registry_position in ('top', 'bottom')),

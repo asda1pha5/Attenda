@@ -59,7 +59,11 @@ Deno.serve(async (request) => {
     const eventTitle = escapeHtml(event.title || 'your invitation');
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+      headers: {
+        Authorization: `Bearer ${resendKey}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'Attenda/1.0',
+      },
       body: JSON.stringify({
         from: fromEmail,
         to: [host.email],

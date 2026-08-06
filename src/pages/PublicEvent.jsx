@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabaseClient';
 import { usePageTitle } from '../lib/usePageTitle';
 import { notifyHost } from '../lib/notifyHost';
 import CommentWall from '../components/CommentWall';
+import { getFlyerBackground } from '../lib/flyerBackgrounds';
+import AppBrand from '../components/AppBrand';
 
 export default function PublicEvent() {
   const { slug } = useParams();
@@ -67,12 +69,13 @@ export default function PublicEvent() {
   if (notFound) return <div className="page-loading">This invitation could not be found.</div>;
   if (!event) return <div className="page-loading">Loading...</div>;
 
-  const theme = event.theme_color || '#6d7f6a';
-  const accent = event.accent_color || '#d8b98c';
+  const background = getFlyerBackground(event.flyer_background);
+  const theme = '#63765f';
+  const accent = '#a87a45';
   const hasImage = Boolean(event.image_url) && event.show_image !== false;
   const legacySide = event.box_left >= 50 ? 'right' : 'left';
   const layout = hasImage ? (event.box_mode || legacySide) : 'standalone';
-  const cssVars = { '--theme': theme, '--accent': accent };
+  const cssVars = { '--theme': theme, '--accent': accent, '--flyer-bg': background.color, '--flyer-ink': background.ink };
 
   const registryButton = event.registry_link && (
     <a className="registry-link" href={event.registry_link} target="_blank" rel="noopener noreferrer">
@@ -159,31 +162,34 @@ export default function PublicEvent() {
 
   return (
     <div className="public-page" style={cssVars}>
+      <div className="public-brand"><AppBrand subtle /></div>
       <div className="public-card-wrap">
         {eventDetails}
-        <div className={`public-card is-loaded layout-${layout}`}>
-          {layout === 'overlay' ? (
-            <>
-              {image}
-              {rsvpBox('overlay', overlayStyle)}
-            </>
-          ) : layout === 'left' ? (
-            <>
-              {rsvpBox()}
-              {image}
-            </>
-          ) : layout === 'right' ? (
-            <>
-              {image}
-              {rsvpBox()}
-            </>
-          ) : (
-            <>
-              {rsvpFirst && rsvpBox()}
-              {image}
-              {!rsvpFirst && rsvpBox()}
-            </>
-          )}
+        <div className="invitation-frame">
+          <div className={`public-card is-loaded layout-${layout}`}>
+            {layout === 'overlay' ? (
+              <>
+                {image}
+                {rsvpBox('overlay', overlayStyle)}
+              </>
+            ) : layout === 'left' ? (
+              <>
+                {rsvpBox()}
+                {image}
+              </>
+            ) : layout === 'right' ? (
+              <>
+                {image}
+                {rsvpBox()}
+              </>
+            ) : (
+              <>
+                {rsvpFirst && rsvpBox()}
+                {image}
+                {!rsvpFirst && rsvpBox()}
+              </>
+            )}
+          </div>
         </div>
         {event.audio_url && (
           <audio className="event-audio" src={event.audio_url} autoPlay controls preload="auto">

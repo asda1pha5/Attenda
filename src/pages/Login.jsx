@@ -5,6 +5,7 @@ import { useAuth } from '../lib/useAuth';
 import { usePageTitle } from '../lib/usePageTitle';
 import floralTable from '../assets/signup-floral-table.png';
 import friendsFerrisWheel from '../assets/signup-friends-ferris-wheel.png';
+import AppBrand from '../components/AppBrand';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -53,6 +54,7 @@ export default function Login() {
 
   return (
     <div className={`auth-page ${mode === 'signup' ? 'signup-page' : ''}`}>
+      <div className="auth-brand-bar"><AppBrand /></div>
       {mode === 'signup' && (
         <section className="signup-showcase" aria-label="What you can do with Attenda">
           <div className="signup-photo-wrap">
@@ -84,7 +86,7 @@ export default function Login() {
         </section>
       )}
       <div className={`auth-card ${mode === 'signup' ? 'auth-card-signup' : ''}`}>
-        {mode === 'signup' && <p className="auth-brand">Attenda</p>}
+        {mode === 'signup' && <p className="auth-brand">Plan · Invite · RSVP · Celebrate</p>}
         <h1>{mode === 'signin' ? 'Attenda' : 'Create your account'}</h1>
         <p className="auth-sub">{mode === 'signin' ? 'Sign in to your hub' : 'Start making invitations your guests will want to open.'}</p>
 

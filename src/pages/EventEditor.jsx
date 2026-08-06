@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
-import { extractPalette } from '../lib/extractPalette';
 import { usePageTitle } from '../lib/usePageTitle';
+import { flyerBackgrounds } from '../lib/flyerBackgrounds';
+import AppBrand from '../components/AppBrand';
 
 const emptyEvent = {
   title: '',
@@ -23,8 +24,7 @@ const emptyEvent = {
   box_left: 4,
   box_width: 92,
   box_height: 25,
-  theme_color: '#6d7f6a',
-  accent_color: '#d8b98c',
+  flyer_background: 'ivory',
   rsvp_title: 'Please RSVP',
   rsvp_subtitle: '',
   show_event_details: true,
@@ -108,11 +108,6 @@ export default function EventEditor() {
     updateField('show_image', true);
     setUploading(false);
 
-    const palette = await extractPalette(data.publicUrl);
-    if (palette) {
-      updateField('theme_color', palette.theme);
-      updateField('accent_color', palette.accent);
-    }
   }
 
   async function handleAudioUpload(e) {
@@ -250,7 +245,11 @@ export default function EventEditor() {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1>{isEditing ? 'Edit Event' : 'New Event'}</h1>
+        <div className="dashboard-title-group">
+          <AppBrand to={isAdmin ? '/admin' : '/hub'} />
+          <h1>{isEditing ? 'Edit Event' : 'New Event'}</h1>
+          <p className="muted">Create a polished invitation your guests can open with confidence.</p>
+        </div>
         <Link to={isAdmin ? '/admin' : '/hub'} className="secondary-btn">Back</Link>
       </header>
 
@@ -334,23 +333,32 @@ export default function EventEditor() {
               onChange={(e) => updateField('registry_link', e.target.value)}
             />
           </label>
-          <label>
-            Theme Color
-            <input
-              type="color"
-              value={form.theme_color || '#6d7f6a'}
-              onChange={(e) => updateField('theme_color', e.target.value)}
-            />
-          </label>
-          <label>
-            Accent Color
-            <input
-              type="color"
-              value={form.accent_color || '#d8b98c'}
-              onChange={(e) => updateField('accent_color', e.target.value)}
-            />
-          </label>
         </div>
+
+        <section className="form-section background-section">
+          <div className="section-heading-row">
+            <div>
+              <h3 className="form-section-title">Invitation background</h3>
+              <p className="section-label">Choose one of Attenda's curated backgrounds.</p>
+            </div>
+            <span className="background-count">12 styles</span>
+          </div>
+          <div className="background-choice-grid" role="radiogroup" aria-label="Invitation background">
+            {flyerBackgrounds.map((background) => (
+              <button
+                type="button"
+                key={background.id}
+                role="radio"
+                aria-checked={form.flyer_background === background.id}
+                className={`background-choice ${form.flyer_background === background.id ? 'is-selected' : ''}`}
+                style={{ '--swatch': background.color, '--swatch-ink': background.ink }}
+                onClick={() => updateField('flyer_background', background.id)}
+              >
+                <span aria-hidden="true" />{background.label}
+              </button>
+            ))}
+          </div>
+        </section>
 
         <label className="upload-label">
           Flyer Image
