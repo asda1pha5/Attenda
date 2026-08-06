@@ -27,6 +27,7 @@ const emptyEvent = {
   accent_color: '#d8b98c',
   rsvp_title: 'Please RSVP',
   rsvp_subtitle: '',
+  show_event_details: true,
   is_published: true,
 };
 
@@ -446,6 +447,18 @@ export default function EventEditor() {
             </label>
           </div>
         )}
+
+        <section className="form-section event-details-settings">
+          <h3 className="form-section-title">Event Details</h3>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={form.show_event_details}
+              onChange={(e) => updateField('show_event_details', e.target.checked)}
+            />
+            Show date, time, and address on the invitation
+          </label>
+        </section>
 
         <section className="form-section rsvp-content-section">
           <h3 className="form-section-title">RSVP Contents</h3>

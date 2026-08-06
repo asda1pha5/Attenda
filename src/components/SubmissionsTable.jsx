@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 export default function SubmissionsTable({ eventId }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -37,10 +38,17 @@ export default function SubmissionsTable({ eventId }) {
     };
   }, [eventId]);
 
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredRows = rows.filter((row) =>
+    !normalizedSearch || [row.guest_name, row.guest_email, row.guest_phone]
+      .filter(Boolean)
+      .some((value) => value.toLowerCase().includes(normalizedSearch))
+  );
+
   function exportCsv() {
-    const header = 'Name,Email,Phone,Attending,Number,Submitted At\n';
-    const body = rows
-      .map((r) => `"${r.guest_name}","${r.guest_email || ''}","${r.guest_phone || ''}","${r.attending}",${r.number_attending},"${new Date(r.created_at).toLocaleString()}"`)
+    const header = 'Name,Email,Phone,Attending,Number,Private Message,Submitted At\n';
+    const body = filteredRows
+      .map((r) => `"${r.guest_name}","${r.guest_email || ''}","${r.guest_phone || ''}","${r.attending}",${r.number_attending},"${(r.private_message || '').replace(/"/g, '""')}","${new Date(r.created_at).toLocaleString()}"`)
       .join('\n');
     const blob = new Blob([header + body], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -54,12 +62,20 @@ export default function SubmissionsTable({ eventId }) {
   if (loading) return <div className="muted">Loading submissions…</div>;
   if (rows.length === 0) return <div className="muted">No RSVPs yet.</div>;
 
-  const attendingCount = rows.filter((r) => r.attending === 'Yes').reduce((s, r) => s + (r.number_attending || 1), 0);
+  const attendingCount = filteredRows.filter((r) => r.attending === 'Yes').reduce((s, r) => s + (r.number_attending || 1), 0);
 
   return (
     <div>
       <div className="submissions-toolbar">
         <span>{rows.length} responses · {attendingCount} attending</span>
+        <input
+          className="guest-search"
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search name, email, or phone"
+          aria-label="Search guests by name, email, or phone"
+        />
         <button onClick={exportCsv}>Export CSV</button>
       </div>
       <table className="submissions-table">
@@ -70,17 +86,19 @@ export default function SubmissionsTable({ eventId }) {
             <th>Phone</th>
             <th>Attending</th>
             <th># Guests</th>
+            <th>Private message</th>
             <th>Submitted</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
+          {filteredRows.map((r) => (
             <tr key={r.id}>
               <td>{r.guest_name}</td>
               <td>{r.guest_email || '—'}</td>
               <td>{r.guest_phone || '—'}</td>
               <td>{r.attending}</td>
               <td>{r.number_attending}</td>
+              <td>{r.private_message || '—'}</td>
               <td>{new Date(r.created_at).toLocaleString()}</td>
             </tr>
           ))}
