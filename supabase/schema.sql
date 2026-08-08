@@ -36,15 +36,25 @@ create table public.events (
   subtitle text,
   event_date date,
   event_time text,
+  event_end_time text,
   address text,
   registry_link text,
   image_url text,
+  audio_url text,
   box_top numeric default 72,
   box_left numeric default 4,
   box_width numeric default 92,
   box_height numeric default 25,
+  box_mode text not null default 'below' check (box_mode in ('above', 'below', 'left', 'right', 'overlay')),
+  show_image boolean not null default true,
   theme_color text default '#6d7f6a',
   accent_color text default '#d8b98c',
+  flyer_background text not null default 'ivory' check (flyer_background in ('ivory', 'sage', 'blush', 'sky', 'butter', 'sand', 'lilac', 'peach', 'mist', 'ocean', 'berry', 'midnight')),
+  rsvp_title text not null default 'Please RSVP',
+  rsvp_subtitle text,
+  registry_position text not null default 'bottom' check (registry_position in ('top', 'bottom')),
+  show_event_details boolean not null default true,
+  event_details_side text not null default 'right' check (event_details_side in ('left', 'right')),
   is_published boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -57,14 +67,32 @@ create table public.rsvps (
   guest_email text not null,
   guest_phone text,
   number_attending int default 1,
-  attending text check (attending in ('Yes','No')),
+  attending text check (attending in ('Yes','Maybe','No')),
+  private_message text check (private_message is null or char_length(private_message) <= 250),
+  host_notified_at timestamptz,
   created_at timestamptz not null default now()
+);
+
+-- ---------- COMMENT WALL ----------
+create table public.comments (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events(id) on delete cascade,
+  guest_name text not null,
+  guest_email text not null,
+  body text,
+  image_url text,
+  gif_url text,
+  host_notified_at timestamptz,
+  created_at timestamptz not null default now(),
+  check (coalesce(char_length(trim(body)), 0) > 0 or image_url is not null or gif_url is not null),
+  check (body is null or char_length(body) <= 500)
 );
 
 -- ---------- ROW LEVEL SECURITY ----------
 alter table public.profiles enable row level security;
 alter table public.events enable row level security;
 alter table public.rsvps enable row level security;
+alter table public.comments enable row level security;
 
 create or replace function public.is_admin()
 returns boolean as $$
@@ -103,6 +131,20 @@ create policy "owner can view rsvps" on public.rsvps
     )
   );
 
+create or replace function public.has_rsvped_for_event(target_event_id uuid, target_email text)
+returns boolean as $$
+  select exists (
+    select 1 from public.rsvps
+    where event_id = target_event_id and lower(guest_email) = lower(target_email)
+  );
+$$ language sql security definer stable;
+
+create policy "public can view comments" on public.comments
+  for select using (true);
+
+create policy "rsvped guests can leave comments" on public.comments
+  for insert with check (public.has_rsvped_for_event(event_id, guest_email));
+
 -- ---------- STORAGE (flyer images) ----------
 insert into storage.buckets (id, name, public)
 values ('event-images', 'event-images', true)
@@ -113,6 +155,16 @@ create policy "public can view event images" on storage.objects
 
 create policy "authenticated users can upload event images" on storage.objects
   for insert with check (bucket_id = 'event-images' and auth.role() = 'authenticated');
+
+insert into storage.buckets (id, name, public)
+values ('comment-images', 'comment-images', true)
+on conflict (id) do nothing;
+
+create policy "public can view comment images" on storage.objects
+  for select using (bucket_id = 'comment-images');
+
+create policy "guests can upload comment images" on storage.objects
+  for insert with check (bucket_id = 'comment-images');
 
 -- ---------- MAKE YOURSELF ADMIN ----------
 -- After you sign up once through the app, run this (swap in your email):

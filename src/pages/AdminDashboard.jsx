@@ -3,14 +3,19 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
 import SubmissionsTable from '../components/SubmissionsTable';
+import { usePageTitle } from '../lib/usePageTitle';
+import ThemeToggle from '../components/ThemeToggle';
+import AppBrand from '../components/AppBrand';
 
 export default function AdminDashboard() {
+  usePageTitle('Admin Events');
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openEventId, setOpenEventId] = useState(null);
   const [filterCustomer, setFilterCustomer] = useState('all');
+  const [customerSearch, setCustomerSearch] = useState('');
 
   useEffect(() => {
     loadAll();
@@ -36,23 +41,53 @@ export default function AdminDashboard() {
     return c?.full_name || c?.email || 'Unknown';
   };
 
-  const filteredEvents =
-    filterCustomer === 'all' ? events : events.filter((e) => e.customer_id === filterCustomer);
+  const normalizedSearch = customerSearch.trim().toLowerCase();
+  const filteredEvents = events.filter((event) => {
+    const matchesSelectedCustomer = filterCustomer === 'all' || event.customer_id === filterCustomer;
+    const owner = customerName(event.customer_id).toLowerCase();
+    return matchesSelectedCustomer && (!normalizedSearch || owner.includes(normalizedSearch));
+  });
 
   return (
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
+          <AppBrand to="/admin" />
           <h1>Admin — All Events</h1>
           <p className="muted">{customers.length} customers · {events.length} events</p>
         </div>
         <div className="header-actions">
+          <ThemeToggle />
           <Link to="/hub" className="secondary-btn">My Own Hub</Link>
           <button className="secondary-btn" onClick={handleSignOut}>Sign Out</button>
         </div>
       </header>
 
       <div className="admin-filter">
+        <label className="customer-search">
+          Search customers:
+          <input
+            type="search"
+            list="customer-suggestions"
+            placeholder="Start typing a name or email"
+            value={customerSearch}
+            onChange={(e) => {
+              const value = e.target.value;
+              setCustomerSearch(value);
+              const matchedCustomer = customers.find((customer) =>
+                [customer.full_name, customer.email].filter(Boolean).some((item) => item.toLowerCase() === value.toLowerCase())
+              );
+              setFilterCustomer(matchedCustomer?.id || 'all');
+            }}
+          />
+          <datalist id="customer-suggestions">
+            {customers.map((customer) => (
+              <option key={customer.id} value={customer.full_name || customer.email}>
+                {customer.email}
+              </option>
+            ))}
+          </datalist>
+        </label>
         <label>
           Filter by customer:
           <select value={filterCustomer} onChange={(e) => setFilterCustomer(e.target.value)}>
@@ -77,7 +112,8 @@ export default function AdminDashboard() {
                 <p className="muted">Owner: {customerName(ev.customer_id)}</p>
                 <p className="muted">
                   {ev.event_date ? new Date(ev.event_date).toLocaleDateString() : 'No date set'}
-                  {ev.event_time ? ` · ${ev.event_time}` : ''} · {ev.is_published ? 'Published' : 'Draft'}
+                  {ev.event_time ? ` · ${ev.event_time}` : ''}
+                  {ev.event_end_time ? ` – ${ev.event_end_time}` : ''} · {ev.is_published ? 'Published' : 'Draft'}
                 </p>
                 <p className="event-link">
                   <code>/e/{ev.slug}</code>

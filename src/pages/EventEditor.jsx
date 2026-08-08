@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
-import { extractPalette } from '../lib/extractPalette';
+import { usePageTitle } from '../lib/usePageTitle';
+import { flyerBackgrounds } from '../lib/flyerBackgrounds';
+import AppBrand from '../components/AppBrand';
 
 const emptyEvent = {
   title: '',
@@ -10,15 +12,22 @@ const emptyEvent = {
   slug: '',
   event_date: '',
   event_time: '',
+  event_end_time: '',
   address: '',
   registry_link: '',
+  registry_position: 'bottom',
   image_url: '',
+  audio_url: '',
+  show_image: true,
+  box_mode: 'below',
   box_top: 72,
   box_left: 4,
   box_width: 92,
   box_height: 25,
-  theme_color: '#6d7f6a',
-  accent_color: '#d8b98c',
+  flyer_background: 'ivory',
+  rsvp_title: 'Please RSVP',
+  rsvp_subtitle: '',
+  show_event_details: true,
   is_published: true,
 };
 
@@ -30,8 +39,28 @@ function slugify(text) {
     .replace(/(^-|-$)/g, '');
 }
 
-function clamp(val, min, max) {
-  return Math.min(max, Math.max(min, val));
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function safeFileName(name) {
+  return name
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+}
+
+function normalizeTime(value) {
+  if (!value?.trim()) return '';
+  const match = value.trim().match(/^(\d{1,2})(?::(\d{1,2}))?\s*([ap])\.?m\.?$/i);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2] ?? 0);
+  if (hours < 1 || hours > 12 || minutes > 59) return null;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${match[3].toUpperCase()}M`;
 }
 
 export default function EventEditor() {
@@ -44,9 +73,10 @@ export default function EventEditor() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
   const previewRef = useRef(null);
-  const dragState = useRef(null); // { mode: 'move'|'resize', startX, startY, box... }
+  const dragState = useRef(null);
+
+  usePageTitle(isEditing ? 'Edit Event' : 'New Event');
 
   useEffect(() => {
     if (isEditing) loadEvent();
@@ -54,7 +84,7 @@ export default function EventEditor() {
 
   async function loadEvent() {
     const { data, error } = await supabase.from('events').select('*').eq('id', id).single();
-    if (!error && data) setForm(data);
+    if (!error && data) setForm({ ...emptyEvent, ...data });
   }
 
   function updateField(key, value) {
@@ -66,7 +96,7 @@ export default function EventEditor() {
     if (!file) return;
     setUploading(true);
     setError('');
-    const path = `${user.id}/${Date.now()}-${file.name}`;
+    const path = `${user.id}/${Date.now()}-${safeFileName(file.name) || 'event-image'}`;
     const { error: uploadError } = await supabase.storage.from('event-images').upload(path, file);
     if (uploadError) {
       setError(uploadError.message);
@@ -75,58 +105,87 @@ export default function EventEditor() {
     }
     const { data } = supabase.storage.from('event-images').getPublicUrl(path);
     updateField('image_url', data.publicUrl);
+    updateField('show_image', true);
     setUploading(false);
 
-    const palette = await extractPalette(data.publicUrl);
-    if (palette) {
-      updateField('theme_color', palette.theme);
-      updateField('accent_color', palette.accent);
+  }
+
+  async function handleAudioUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    setError('');
+    const path = `${user.id}/audio/${Date.now()}-${safeFileName(file.name) || 'event-audio'}`;
+    const { error: uploadError } = await supabase.storage.from('event-images').upload(path, file);
+    if (uploadError) {
+      setError(uploadError.message);
+      setUploading(false);
+      return;
+    }
+    const { data } = supabase.storage.from('event-images').getPublicUrl(path);
+    updateField('audio_url', data.publicUrl);
+    setUploading(false);
+  }
+
+  function handleRemoveAudio() {
+    updateField('audio_url', '');
+  }
+
+  function handleRemoveImage() {
+    updateField('image_url', '');
+    updateField('show_image', false);
+  }
+
+  function handleLayoutChange(mode) {
+    if (mode === 'overlay') {
+      setForm((current) => ({
+        ...current,
+        box_mode: mode,
+        box_top: 25,
+        box_left: 11,
+        box_width: 78,
+        box_height: 50,
+      }));
+    } else {
+      updateField('box_mode', mode);
     }
   }
 
-  // ---------- Drag / resize the RSVP box directly on the flyer preview ----------
-  function startDrag(e, mode) {
+  function startOverlayDrag(e) {
     e.preventDefault();
-    e.stopPropagation();
     const point = e.touches ? e.touches[0] : e;
     dragState.current = {
-      mode,
       startX: point.clientX,
       startY: point.clientY,
-      startBox: { top: form.box_top, left: form.box_left, width: form.box_width, height: form.box_height },
+      startTop: form.box_top,
+      startLeft: form.box_left,
     };
-    window.addEventListener('mousemove', onDragMove);
-    window.addEventListener('mouseup', onDragEnd);
-    window.addEventListener('touchmove', onDragMove, { passive: false });
-    window.addEventListener('touchend', onDragEnd);
+    window.addEventListener('mousemove', moveOverlay);
+    window.addEventListener('mouseup', endOverlayDrag);
+    window.addEventListener('touchmove', moveOverlay, { passive: false });
+    window.addEventListener('touchend', endOverlayDrag);
   }
 
-  function onDragMove(e) {
+  function moveOverlay(e) {
     if (!dragState.current || !previewRef.current) return;
     e.preventDefault();
     const point = e.touches ? e.touches[0] : e;
     const rect = previewRef.current.getBoundingClientRect();
-    const dxPct = ((point.clientX - dragState.current.startX) / rect.width) * 100;
-    const dyPct = ((point.clientY - dragState.current.startY) / rect.height) * 100;
-    const { mode, startBox } = dragState.current;
-
-    if (mode === 'move') {
-      const newLeft = clamp(startBox.left + dxPct, 0, 100 - startBox.width);
-      const newTop = clamp(startBox.top + dyPct, 0, 100 - startBox.height);
-      setForm((f) => ({ ...f, box_left: Math.round(newLeft * 10) / 10, box_top: Math.round(newTop * 10) / 10 }));
-    } else if (mode === 'resize') {
-      const newWidth = clamp(startBox.width + dxPct, 10, 100 - startBox.left);
-      const newHeight = clamp(startBox.height + dyPct, 10, 100 - startBox.top);
-      setForm((f) => ({ ...f, box_width: Math.round(newWidth * 10) / 10, box_height: Math.round(newHeight * 10) / 10 }));
-    }
+    const dx = ((point.clientX - dragState.current.startX) / rect.width) * 100;
+    const dy = ((point.clientY - dragState.current.startY) / rect.height) * 100;
+    setForm((current) => ({
+      ...current,
+      box_left: Math.round(clamp(dragState.current.startLeft + dx, 0, 100 - current.box_width) * 10) / 10,
+      box_top: Math.round(clamp(dragState.current.startTop + dy, 0, 100 - current.box_height) * 10) / 10,
+    }));
   }
 
-  function onDragEnd() {
+  function endOverlayDrag() {
     dragState.current = null;
-    window.removeEventListener('mousemove', onDragMove);
-    window.removeEventListener('mouseup', onDragEnd);
-    window.removeEventListener('touchmove', onDragMove);
-    window.removeEventListener('touchend', onDragEnd);
+    window.removeEventListener('mousemove', moveOverlay);
+    window.removeEventListener('mouseup', endOverlayDrag);
+    window.removeEventListener('touchmove', moveOverlay);
+    window.removeEventListener('touchend', endOverlayDrag);
   }
 
   async function handleSave(e) {
@@ -135,6 +194,17 @@ export default function EventEditor() {
 
     if (!form.event_date) {
       setError('Please choose a date.');
+      return;
+    }
+
+    const startTime = normalizeTime(form.event_time);
+    const endTime = normalizeTime(form.event_end_time);
+    if (form.event_time && !startTime) {
+      setError('Start time must include AM or PM, for example 5:00 PM.');
+      return;
+    }
+    if (form.event_end_time && !endTime) {
+      setError('End time must include AM or PM, for example 8:00 PM.');
       return;
     }
 
@@ -147,6 +217,8 @@ export default function EventEditor() {
       customer_id: form.customer_id || user.id,
       // Postgres rejects an empty string for a date column — send null instead
       event_date: form.event_date || null,
+      event_time: startTime,
+      event_end_time: endTime,
     };
     delete payload.id;
     delete payload.created_at;
@@ -173,7 +245,11 @@ export default function EventEditor() {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1>{isEditing ? 'Edit Event' : 'New Event'}</h1>
+        <div className="dashboard-title-group">
+          <AppBrand to={isAdmin ? '/admin' : '/hub'} />
+          <h1>{isEditing ? 'Edit Event' : 'New Event'}</h1>
+          <p className="muted">Create a polished invitation your guests can open with confidence.</p>
+        </div>
         <Link to={isAdmin ? '/admin' : '/hub'} className="secondary-btn">Back</Link>
       </header>
 
@@ -215,12 +291,29 @@ export default function EventEditor() {
             />
           </label>
           <label>
-            Time
+            Start Time
             <input
               type="text"
               placeholder="5:00 PM"
               value={form.event_time || ''}
               onChange={(e) => updateField('event_time', e.target.value)}
+              onBlur={(e) => {
+                const value = normalizeTime(e.target.value);
+                if (value) updateField('event_time', value);
+              }}
+            />
+          </label>
+          <label>
+            End Time
+            <input
+              type="text"
+              placeholder="8:00 PM"
+              value={form.event_end_time || ''}
+              onChange={(e) => updateField('event_end_time', e.target.value)}
+              onBlur={(e) => {
+                const value = normalizeTime(e.target.value);
+                if (value) updateField('event_end_time', value);
+              }}
             />
           </label>
           <label>
@@ -240,23 +333,32 @@ export default function EventEditor() {
               onChange={(e) => updateField('registry_link', e.target.value)}
             />
           </label>
-          <label>
-            Theme Color
-            <input
-              type="color"
-              value={form.theme_color || '#6d7f6a'}
-              onChange={(e) => updateField('theme_color', e.target.value)}
-            />
-          </label>
-          <label>
-            Accent Color
-            <input
-              type="color"
-              value={form.accent_color || '#d8b98c'}
-              onChange={(e) => updateField('accent_color', e.target.value)}
-            />
-          </label>
         </div>
+
+        <section className="form-section background-section">
+          <div className="section-heading-row">
+            <div>
+              <h3 className="form-section-title">Invitation background</h3>
+              <p className="section-label">Choose one of Attenda's curated backgrounds.</p>
+            </div>
+            <span className="background-count">12 styles</span>
+          </div>
+          <div className="background-choice-grid" role="radiogroup" aria-label="Invitation background">
+            {flyerBackgrounds.map((background) => (
+              <button
+                type="button"
+                key={background.id}
+                role="radio"
+                aria-checked={form.flyer_background === background.id}
+                className={`background-choice ${form.flyer_background === background.id ? 'is-selected' : ''}`}
+                style={{ '--swatch': background.color, '--swatch-ink': background.ink }}
+                onClick={() => updateField('flyer_background', background.id)}
+              >
+                <span aria-hidden="true" />{background.label}
+              </button>
+            ))}
+          </div>
+        </section>
 
         <label className="upload-label">
           Flyer Image
@@ -266,56 +368,139 @@ export default function EventEditor() {
 
         {form.image_url && (
           <>
-            <p className="section-label">
-              Drag the box into place, drag the corner handle to resize — or use the sliders/numbers below.
-            </p>
-            <div className="flyer-preview" ref={previewRef}>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={form.show_image}
+                onChange={(e) => updateField('show_image', e.target.checked)}
+              />
+              Show this image on the invitation
+            </label>
+            <button type="button" className="tiny-btn danger" onClick={handleRemoveImage}>Remove image</button>
+            <p className="section-label">Flyer preview</p>
+            <div className={`flyer-preview ${form.box_mode === 'overlay' && form.show_image ? 'overlay-preview' : ''}`} ref={previewRef}>
               <img src={form.image_url} alt="Flyer preview" draggable={false} />
-              <div
-                className="flyer-preview-box draggable"
-                style={{
-                  top: `${form.box_top}%`,
-                  left: `${form.box_left}%`,
-                  width: `${form.box_width}%`,
-                  height: `${form.box_height}%`,
-                }}
-                onMouseDown={(e) => startDrag(e, 'move')}
-                onTouchStart={(e) => startDrag(e, 'move')}
-              >
-                RSVP box
+              {form.box_mode === 'overlay' && form.show_image && (
                 <div
-                  className="resize-handle"
-                  onMouseDown={(e) => startDrag(e, 'resize')}
-                  onTouchStart={(e) => startDrag(e, 'resize')}
-                />
-              </div>
+                  className="flyer-preview-box draggable"
+                  style={{
+                    top: `${form.box_top}%`,
+                    left: `${form.box_left}%`,
+                    width: `${form.box_width}%`,
+                    height: `${form.box_height}%`,
+                  }}
+                  onMouseDown={startOverlayDrag}
+                  onTouchStart={startOverlayDrag}
+                >
+                  RSVP box
+                </div>
+              )}
             </div>
           </>
         )}
 
-        <p className="section-label">Fine-tune position &amp; size (%)</p>
-        <div className="box-controls-grid">
-          <div className="box-control">
-            <label>Top</label>
-            <input type="range" min="0" max="100" value={form.box_top} onChange={(e) => updateField('box_top', Number(e.target.value))} />
-            <input type="number" value={form.box_top} onChange={(e) => updateField('box_top', Number(e.target.value))} />
+        <section className="form-section audio-section">
+          <h3 className="form-section-title">Invitation Audio</h3>
+          <p className="section-label">Add a short audio file to play when guests open the invitation.</p>
+          <label className="upload-label">
+            Audio file
+            <input type="file" accept="audio/*" onChange={handleAudioUpload} />
+          </label>
+          {form.audio_url && (
+            <div className="audio-editor-preview">
+              <audio controls src={form.audio_url}>Your browser does not support audio playback.</audio>
+              <button type="button" className="tiny-btn danger" onClick={handleRemoveAudio}>Remove audio</button>
+            </div>
+          )}
+        </section>
+
+        <label className="rsvp-placement-control">
+          RSVP placement
+          <select
+            value={form.box_mode}
+            onChange={(e) => handleLayoutChange(e.target.value)}
+          >
+            <option value="above">Above the flyer</option>
+            <option value="below">Below the flyer</option>
+            <option value="left">To the left of the flyer</option>
+            <option value="right">To the right of the flyer</option>
+            <option value="overlay">Over the flyer (moveable)</option>
+          </select>
+          <span>The RSVP panel is automatically sized so its contents remain readable.</span>
+        </label>
+
+        {form.box_mode === 'overlay' && form.image_url && form.show_image && (
+          <div className="overlay-editor">
+            <p className="section-label">Drag the RSVP box on the flyer to position it.</p>
+            <label className="overlay-position-control">
+              Quick position
+              <select
+                value={['5-2', '5-11', '5-20', '25-2', '25-11', '25-20', '45-2', '45-11', '45-20'].includes(`${form.box_top}-${form.box_left}`) ? `${form.box_top}-${form.box_left}` : 'custom'}
+                onChange={(e) => {
+                  const [top, left] = e.target.value.split('-').map(Number);
+                  setForm((current) => ({ ...current, box_top: top, box_left: left }));
+                }}
+              >
+                <option value="custom" disabled>Custom (dragged)</option>
+                <option value="5-2">Top left</option>
+                <option value="5-11">Top center</option>
+                <option value="5-20">Top right</option>
+                <option value="25-2">Middle left</option>
+                <option value="25-11">Middle center</option>
+                <option value="25-20">Middle right</option>
+                <option value="45-2">Bottom left</option>
+                <option value="45-11">Bottom center</option>
+                <option value="45-20">Bottom right</option>
+              </select>
+            </label>
           </div>
-          <div className="box-control">
-            <label>Left</label>
-            <input type="range" min="0" max="100" value={form.box_left} onChange={(e) => updateField('box_left', Number(e.target.value))} />
-            <input type="number" value={form.box_left} onChange={(e) => updateField('box_left', Number(e.target.value))} />
-          </div>
-          <div className="box-control">
-            <label>Width</label>
-            <input type="range" min="10" max="100" value={form.box_width} onChange={(e) => updateField('box_width', Number(e.target.value))} />
-            <input type="number" value={form.box_width} onChange={(e) => updateField('box_width', Number(e.target.value))} />
-          </div>
-          <div className="box-control">
-            <label>Height</label>
-            <input type="range" min="10" max="100" value={form.box_height} onChange={(e) => updateField('box_height', Number(e.target.value))} />
-            <input type="number" value={form.box_height} onChange={(e) => updateField('box_height', Number(e.target.value))} />
-          </div>
-        </div>
+        )}
+
+        <section className="form-section event-details-settings">
+          <h3 className="form-section-title">Event Details</h3>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={form.show_event_details}
+              onChange={(e) => updateField('show_event_details', e.target.checked)}
+            />
+            Show date, time, and address on the invitation
+          </label>
+        </section>
+
+        <section className="form-section rsvp-content-section">
+          <h3 className="form-section-title">RSVP Contents</h3>
+          <label>
+            RSVP heading
+            <input
+              type="text"
+              placeholder="Please RSVP"
+              value={form.rsvp_title || ''}
+              onChange={(e) => updateField('rsvp_title', e.target.value)}
+            />
+          </label>
+          <label>
+            Subtitle / extra text (optional)
+            <textarea
+              rows="2"
+              placeholder="Leave blank to show just the RSVP heading"
+              value={form.rsvp_subtitle || ''}
+              onChange={(e) => updateField('rsvp_subtitle', e.target.value)}
+            />
+          </label>
+          {form.registry_link && (
+            <label>
+              Registry button position
+              <select
+                value={form.registry_position}
+                onChange={(e) => updateField('registry_position', e.target.value)}
+              >
+                <option value="bottom">Below RSVP form</option>
+                <option value="top">Above RSVP heading</option>
+              </select>
+            </label>
+          )}
+        </section>
 
         <label className="checkbox-label">
           <input

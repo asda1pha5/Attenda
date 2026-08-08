@@ -3,8 +3,12 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
 import SubmissionsTable from '../components/SubmissionsTable';
+import { usePageTitle } from '../lib/usePageTitle';
+import ThemeToggle from '../components/ThemeToggle';
+import AppBrand from '../components/AppBrand';
 
 export default function CustomerDashboard() {
+  usePageTitle('My Events');
   const { user, profile, isAdmin } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,10 +38,12 @@ export default function CustomerDashboard() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
+          <AppBrand to="/hub" />
           <h1>My Events</h1>
-          <p className="muted">Signed in as {profile?.full_name || user?.email}</p>
+          <p className="muted">Your invitations, guest list, and responses in one place.</p>
         </div>
         <div className="header-actions">
+          <ThemeToggle />
           {isAdmin && <Link to="/admin" className="secondary-btn">Admin View</Link>}
           <Link to="/hub/new" className="primary-btn">+ New Event</Link>
           <button className="secondary-btn" onClick={handleSignOut}>Sign Out</button>
@@ -60,6 +66,7 @@ export default function CustomerDashboard() {
                 <p className="muted">
                   {ev.event_date ? new Date(ev.event_date).toLocaleDateString() : 'No date set'}
                   {ev.event_time ? ` · ${ev.event_time}` : ''}
+                  {ev.event_end_time ? ` – ${ev.event_end_time}` : ''}
                 </p>
                 <p className="event-link">
                   <code>/e/{ev.slug}</code>

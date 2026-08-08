@@ -1,24 +1,34 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
+import { usePageTitle } from '../lib/usePageTitle';
+import floralTable from '../assets/signup-floral-table.png';
+import friendsFerrisWheel from '../assets/signup-friends-ferris-wheel.png';
+import AppBrand from '../components/AppBrand';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading } = useAuth();
-  const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
+  const [mode, setMode] = useState(() => new URLSearchParams(location.search).get('mode') === 'signin' ? 'signin' : 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
+  usePageTitle(mode === 'signin' ? 'Sign In' : 'Create Account');
 
   // If a session already exists (e.g. we just signed in, or the page
   // was reloaded while logged in), leave the login page automatically.
   useEffect(() => {
     if (!loading && user) navigate('/hub', { replace: true });
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    setMode(new URLSearchParams(location.search).get('mode') === 'signin' ? 'signin' : 'signup');
+  }, [location.search]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -43,10 +53,50 @@ export default function Login() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1>RSVP Hub</h1>
-        <p className="auth-sub">{mode === 'signin' ? 'Sign in to your hub' : 'Create your account'}</p>
+    <div className={`auth-page ${mode === 'signup' ? 'signup-page' : ''}`}>
+      <div className="auth-brand-bar"><AppBrand /></div>
+      {mode === 'signup' && (
+        <section className="signup-showcase" aria-label="What you can do with Attenda">
+          <div className="signup-photo-wrap">
+            <img
+              className="signup-main-photo"
+              src={floralTable}
+              alt="Floral table setting ready for a celebration"
+            />
+            <div className="signup-photo-note">Made for the moments people remember.</div>
+            <img
+              className="signup-small-photo"
+              src={friendsFerrisWheel}
+              alt="Friends enjoying a sunset outing together"
+            />
+          </div>
+
+          <p className="signup-kicker">More than an RSVP link</p>
+          <h1>Bring your next gathering to life.</h1>
+          <p className="signup-lede">
+            Attenda turns your event details into a polished, shareable invitation that makes it easy for guests to say yes.
+          </p>
+          <p className="signup-examples">Perfect for birthdays, baby showers, graduations, dinners, reunions, and every reason to gather.</p>
+
+          <div className="signup-benefits">
+            <div><span>✦</span><strong>Make it yours</strong><p>Add your flyer, colors, event details, music, and RSVP layout.</p></div>
+            <div><span>↗</span><strong>Share one beautiful link</strong><p>Give guests everything they need in one simple invitation.</p></div>
+            <div><span>✓</span><strong>Know who is coming</strong><p>Collect RSVPs and keep your guest list organized from your hub.</p></div>
+          </div>
+        </section>
+      )}
+      <div className={`auth-card ${mode === 'signup' ? 'auth-card-signup' : ''}`}>
+        {mode === 'signup' && <p className="auth-brand">Plan · Invite · RSVP · Celebrate</p>}
+        <h1>{mode === 'signin' ? 'Attenda' : 'Create your account'}</h1>
+        <p className="auth-sub">{mode === 'signin' ? 'Sign in to your hub' : 'Start making invitations your guests will want to open.'}</p>
+
+        {mode === 'signin' && (
+          <div className="signin-flourish">
+            <span className="signin-spark" aria-hidden="true">✦</span>
+            <p>Every memorable gathering starts with one thoughtful invitation.</p>
+            <div><span>Create</span><span>Share</span><span>Celebrate</span></div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           {mode === 'signup' && (
