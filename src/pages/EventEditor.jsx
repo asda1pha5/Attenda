@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
 import { usePageTitle } from '../lib/usePageTitle';
 import { flyerBackgrounds } from '../lib/flyerBackgrounds';
-import AppBrand from '../components/AppBrand';
+import { signatureTemplates } from '../lib/signatureTemplates';
 
 const emptyEvent = {
   title: '',
@@ -25,6 +25,12 @@ const emptyEvent = {
   box_width: 92,
   box_height: 25,
   flyer_background: 'ivory',
+  template_id: 'classic',
+  password_protected: false,
+  event_password: '',
+  photo_album_enabled: false,
+  reminder_enabled: false,
+  remove_branding: false,
   rsvp_title: 'Please RSVP',
   rsvp_subtitle: '',
   show_event_details: true,
@@ -64,7 +70,7 @@ function normalizeTime(value) {
 }
 
 export default function EventEditor() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isPremium } = useAuth();
   const { id } = useParams();
   const isEditing = Boolean(id);
   const navigate = useNavigate();
@@ -73,6 +79,7 @@ export default function EventEditor() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [hadExistingPassword, setHadExistingPassword] = useState(false);
   const previewRef = useRef(null);
   const dragState = useRef(null);
 
@@ -84,7 +91,10 @@ export default function EventEditor() {
 
   async function loadEvent() {
     const { data, error } = await supabase.from('events').select('*').eq('id', id).single();
-    if (!error && data) setForm({ ...emptyEvent, ...data });
+    if (!error && data) {
+      setForm({ ...emptyEvent, ...data });
+      setHadExistingPassword(Boolean(data.password_protected));
+    }
   }
 
   function updateField(key, value) {
@@ -208,9 +218,14 @@ export default function EventEditor() {
       return;
     }
 
+    const slug = form.slug || slugify(form.title);
+    if (form.password_protected && !form.event_password.trim() && (!isEditing || !hadExistingPassword)) {
+      setError('Set an access code for this password-protected invitation.');
+      return;
+    }
+
     setSaving(true);
 
-    const slug = form.slug || slugify(form.title);
     const payload = {
       ...form,
       slug,
@@ -219,34 +234,54 @@ export default function EventEditor() {
       event_date: form.event_date || null,
       event_time: startTime,
       event_end_time: endTime,
+      template_id: isPremium ? form.template_id : 'classic',
+      password_protected: isPremium ? form.password_protected : false,
+      photo_album_enabled: isPremium ? form.photo_album_enabled : false,
+      reminder_enabled: isPremium ? form.reminder_enabled : false,
+      remove_branding: isPremium ? form.remove_branding : false,
     };
     delete payload.id;
     delete payload.created_at;
+    delete payload.event_password;
 
     let result;
     if (isEditing) {
-      result = await supabase.from('events').update(payload).eq('id', id);
+      result = await supabase.from('events').update(payload).eq('id', id).select('id').single();
     } else {
-      result = await supabase.from('events').insert(payload);
+      result = await supabase.from('events').insert(payload).select('id').single();
     }
 
-    setSaving(false);
     if (result.error) {
+      setSaving(false);
       if (result.error.message.toLowerCase().includes('date')) {
         setError('Please choose a valid date.');
       } else {
         setError(result.error.message);
       }
-    } else {
-      navigate(isAdmin ? '/admin' : '/hub');
+      return;
     }
+
+    const eventId = result.data.id;
+    if (isPremium && (form.event_password.trim() || !form.password_protected)) {
+      const { error: passwordError } = await supabase.rpc('set_event_password', {
+        target_event_id: eventId,
+        new_password: form.password_protected ? form.event_password.trim() : null,
+      });
+      if (passwordError) {
+        setSaving(false);
+        setError(`Your event was saved, but the access code could not be updated: ${passwordError.message}`);
+        return;
+      }
+    }
+
+    setSaving(false);
+    navigate(isAdmin ? '/admin' : '/hub');
   }
 
   return (
     <div className="dashboard">
       <header className="dashboard-header">
         <div className="dashboard-title-group">
-          <AppBrand to={isAdmin ? '/admin' : '/hub'} />
           <h1>{isEditing ? 'Edit Event' : 'New Event'}</h1>
           <p className="muted">Create a polished invitation your guests can open with confidence.</p>
         </div>
@@ -357,6 +392,57 @@ export default function EventEditor() {
                 <span aria-hidden="true" />{background.label}
               </button>
             ))}
+          </div>
+        </section>
+
+        <section className="form-section signature-section">
+          <div className="section-heading-row">
+            <div>
+              <p className="signature-kicker">Attenda Signature</p>
+              <h3 className="form-section-title">Make this invitation feel unforgettable</h3>
+              <p className="section-label">Premium tools for the moments that deserve more.</p>
+            </div>
+            {!isPremium && <Link className="signature-upgrade-link" to="/upgrade">View Signature</Link>}
+          </div>
+
+          <div className="template-choice-grid">
+            {signatureTemplates.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                className={`template-choice template-${template.id} ${form.template_id === template.id ? 'is-selected' : ''} ${template.premium && !isPremium ? 'is-locked' : ''}`}
+                onClick={() => (template.premium && !isPremium ? null : updateField('template_id', template.id))}
+              >
+                <span className="template-preview" aria-hidden="true" />
+                <strong>{template.label}</strong>
+                <small>{template.premium && !isPremium ? 'Signature' : template.description}</small>
+              </button>
+            ))}
+          </div>
+
+          <div className={`signature-options ${isPremium ? '' : 'is-locked'}`}>
+            <label className="checkbox-label">
+              <input type="checkbox" checked={form.password_protected} disabled={!isPremium} onChange={(e) => updateField('password_protected', e.target.checked)} />
+              Protect this invitation with an access code
+            </label>
+            {form.password_protected && isPremium && (
+              <label className="signature-password-field">
+                Access code
+                <input type="password" placeholder={isEditing ? 'Leave blank to keep the current code' : 'Choose an access code'} value={form.event_password} onChange={(e) => updateField('event_password', e.target.value)} />
+              </label>
+            )}
+            <label className="checkbox-label">
+              <input type="checkbox" checked={form.photo_album_enabled} disabled={!isPremium} onChange={(e) => updateField('photo_album_enabled', e.target.checked)} />
+              Enable the event photo album
+            </label>
+            <label className="checkbox-label">
+              <input type="checkbox" checked={form.reminder_enabled} disabled={!isPremium} onChange={(e) => updateField('reminder_enabled', e.target.checked)} />
+              Send guests a day-before event reminder
+            </label>
+            <label className="checkbox-label">
+              <input type="checkbox" checked={form.remove_branding} disabled={!isPremium} onChange={(e) => updateField('remove_branding', e.target.checked)} />
+              Remove Attenda branding from this invitation
+            </label>
           </div>
         </section>
 

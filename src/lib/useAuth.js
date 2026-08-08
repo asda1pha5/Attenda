@@ -45,5 +45,7 @@ export function useAuth() {
     };
   }, []);
 
-  return { user, profile, loading, isAdmin: profile?.role === 'admin' };
+  const isAdmin = profile?.role === 'admin';
+  const isPremium = isAdmin || ['signature', 'pro'].includes(profile?.plan);
+  return { user, profile, loading, isAdmin, isPremium };
 }

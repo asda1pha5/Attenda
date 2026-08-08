@@ -4,13 +4,16 @@ import { supabase } from '../lib/supabaseClient';
 import { usePageTitle } from '../lib/usePageTitle';
 import { notifyHost } from '../lib/notifyHost';
 import CommentWall from '../components/CommentWall';
+import EventPhotoAlbum from '../components/EventPhotoAlbum';
 import { getFlyerBackground } from '../lib/flyerBackgrounds';
-import AppBrand from '../components/AppBrand';
 
 export default function PublicEvent() {
   const { slug } = useParams();
   const [event, setEvent] = useState(null);
   const [notFound, setNotFound] = useState(false);
+  const [locked, setLocked] = useState(false);
+  const [accessCode, setAccessCode] = useState('');
+  const [accessError, setAccessError] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -23,18 +26,42 @@ export default function PublicEvent() {
   usePageTitle(event ? `RSVP for ${event.title}` : 'Invitation');
 
   useEffect(() => {
-    async function load() {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_published', true)
-        .single();
-      if (error || !data) setNotFound(true);
-      else setEvent(data);
-    }
-    load();
+    loadEvent(sessionStorage.getItem(`attenda-access-${slug}`));
   }, [slug]);
+
+  async function loadEvent(password) {
+    const { data, error } = await supabase.rpc('get_public_event', {
+      target_slug: slug,
+      provided_password: password || null,
+    });
+    if (error || !data) {
+      setNotFound(true);
+      return;
+    }
+    if (data.locked) {
+      setEvent(data);
+      setLocked(true);
+      return;
+    }
+    setEvent(data);
+    setLocked(false);
+  }
+
+  async function unlockEvent(e) {
+    e.preventDefault();
+    setAccessError('');
+    const { data, error } = await supabase.rpc('get_public_event', {
+      target_slug: slug,
+      provided_password: accessCode,
+    });
+    if (error || !data || data.locked) {
+      setAccessError('That access code did not match. Please try again.');
+      return;
+    }
+    sessionStorage.setItem(`attenda-access-${slug}`, accessCode);
+    setEvent(data);
+    setLocked(false);
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -68,6 +95,20 @@ export default function PublicEvent() {
 
   if (notFound) return <div className="page-loading">This invitation could not be found.</div>;
   if (!event) return <div className="page-loading">Loading...</div>;
+  if (locked) return (
+    <main className="invitation-lock-page">
+      <section className="invitation-lock-card">
+        <p className="event-details-label">Private invitation</p>
+        <h1>{event.title || 'This event'}</h1>
+        <p>Enter the access code from your host to view the invitation and RSVP.</p>
+        <form onSubmit={unlockEvent}>
+          <input type="password" autoFocus value={accessCode} onChange={(e) => setAccessCode(e.target.value)} placeholder="Access code" required />
+          {accessError && <p className="auth-error">{accessError}</p>}
+          <button className="primary-btn" type="submit">Open invitation</button>
+        </form>
+      </section>
+    </main>
+  );
 
   const background = getFlyerBackground(event.flyer_background);
   const theme = '#63765f';
@@ -162,11 +203,10 @@ export default function PublicEvent() {
 
   return (
     <div className="public-page" style={cssVars}>
-      <div className="public-brand"><AppBrand subtle /></div>
       <div className="public-card-wrap">
         {eventDetails}
         <div className="invitation-frame">
-          <div className={`public-card is-loaded layout-${layout}`}>
+          <div className={`public-card is-loaded layout-${layout} template-${event.template_id || 'classic'}`}>
             {layout === 'overlay' ? (
               <>
                 {image}
@@ -202,10 +242,15 @@ export default function PublicEvent() {
           guestName={name}
           guestEmail={email}
         />
+        {event.photo_album_enabled && (
+          <EventPhotoAlbum eventId={event.id} canUpload={status === 'done'} guestName={name} guestEmail={email} />
+        )}
       </div>
-      <Link to="/login?mode=signup" className="create-invite-cta">
-        Want to make your own invite? <span>Click here</span>
-      </Link>
+      {!event.remove_branding && (
+        <Link to="/login?mode=signup" className="create-invite-cta">
+          Want to make your own invite? <span>Click here</span>
+        </Link>
+      )}
     </div>
   );
 }

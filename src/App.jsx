@@ -5,13 +5,17 @@ import AdminDashboard from './pages/AdminDashboard';
 import EventEditor from './pages/EventEditor';
 import PublicEvent from './pages/PublicEvent';
 import ProtectedRoute from './components/ProtectedRoute';
+import TopNav from './components/TopNav';
+import Upgrade from './pages/Upgrade';
 
 export default function App() {
   return (
     <BrowserRouter>
+      <TopNav />
       <Routes>
         <Route path="/" element={<Navigate to="/hub" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/upgrade" element={<Upgrade />} />
 
         <Route path="/e/:slug" element={<PublicEvent />} />
 

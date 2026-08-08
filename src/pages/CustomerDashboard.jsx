@@ -5,7 +5,6 @@ import { useAuth } from '../lib/useAuth';
 import SubmissionsTable from '../components/SubmissionsTable';
 import { usePageTitle } from '../lib/usePageTitle';
 import ThemeToggle from '../components/ThemeToggle';
-import AppBrand from '../components/AppBrand';
 
 export default function CustomerDashboard() {
   usePageTitle('My Events');
@@ -38,7 +37,6 @@ export default function CustomerDashboard() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <AppBrand to="/hub" />
           <h1>My Events</h1>
           <p className="muted">Your invitations, guest list, and responses in one place.</p>
         </div>

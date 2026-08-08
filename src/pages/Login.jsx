@@ -5,7 +5,6 @@ import { useAuth } from '../lib/useAuth';
 import { usePageTitle } from '../lib/usePageTitle';
 import floralTable from '../assets/signup-floral-table.png';
 import friendsFerrisWheel from '../assets/signup-friends-ferris-wheel.png';
-import AppBrand from '../components/AppBrand';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -54,7 +53,6 @@ export default function Login() {
 
   return (
     <div className={`auth-page ${mode === 'signup' ? 'signup-page' : ''}`}>
-      <div className="auth-brand-bar"><AppBrand /></div>
       {mode === 'signup' && (
         <section className="signup-showcase" aria-label="What you can do with Attenda">
           <div className="signup-photo-wrap">
