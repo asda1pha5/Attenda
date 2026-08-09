@@ -5,6 +5,7 @@ import { useAuth } from '../lib/useAuth';
 import { usePageTitle } from '../lib/usePageTitle';
 import { flyerBackgrounds } from '../lib/flyerBackgrounds';
 import { signatureTemplates } from '../lib/signatureTemplates';
+import { optimizeImageUpload, validateAudioUpload } from '../lib/mediaUpload';
 
 const emptyEvent = {
   title: '',
@@ -114,18 +115,20 @@ export default function EventEditor() {
     if (!file) return;
     setUploading(true);
     setError('');
-    const path = `${user.id}/${Date.now()}-${safeFileName(file.name) || 'event-image'}`;
-    const { error: uploadError } = await supabase.storage.from('event-images').upload(path, file);
-    if (uploadError) {
-      setError(uploadError.message);
+    try {
+      const optimizedFile = await optimizeImageUpload(file, { maxOutputMB: 2, maxDimension: 2200 });
+      const path = `${user.id}/${Date.now()}-${safeFileName(optimizedFile.name) || 'event-image.webp'}`;
+      const { error: uploadError } = await supabase.storage.from('event-images').upload(path, optimizedFile, { contentType: optimizedFile.type });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('event-images').getPublicUrl(path);
+      updateField('image_url', data.publicUrl);
+      updateField('show_image', true);
+    } catch (uploadError) {
+      setError(uploadError.message || 'The flyer image could not be uploaded.');
+    } finally {
       setUploading(false);
-      return;
+      e.target.value = '';
     }
-    const { data } = supabase.storage.from('event-images').getPublicUrl(path);
-    updateField('image_url', data.publicUrl);
-    updateField('show_image', true);
-    setUploading(false);
-
   }
 
   async function handleAudioUpload(e) {
@@ -133,16 +136,19 @@ export default function EventEditor() {
     if (!file) return;
     setUploading(true);
     setError('');
-    const path = `${user.id}/audio/${Date.now()}-${safeFileName(file.name) || 'event-audio'}`;
-    const { error: uploadError } = await supabase.storage.from('event-images').upload(path, file);
-    if (uploadError) {
-      setError(uploadError.message);
+    try {
+      validateAudioUpload(file);
+      const path = `${user.id}/audio/${Date.now()}-${safeFileName(file.name) || 'event-audio'}`;
+      const { error: uploadError } = await supabase.storage.from('event-images').upload(path, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('event-images').getPublicUrl(path);
+      updateField('audio_url', data.publicUrl);
+    } catch (uploadError) {
+      setError(uploadError.message || 'The audio file could not be uploaded.');
+    } finally {
       setUploading(false);
-      return;
+      e.target.value = '';
     }
-    const { data } = supabase.storage.from('event-images').getPublicUrl(path);
-    updateField('audio_url', data.publicUrl);
-    setUploading(false);
   }
 
   function handleRemoveAudio() {
@@ -475,6 +481,7 @@ export default function EventEditor() {
           Flyer Image
           <input type="file" accept="image/*" onChange={handleImageUpload} />
         </label>
+        <p className="section-label">JPG, PNG, WebP, or GIF. Images are optimized automatically; animated GIFs must be 2 MB or smaller.</p>
         {uploading && <div className="muted">Uploading…</div>}
 
         {form.image_url && (
@@ -517,6 +524,7 @@ export default function EventEditor() {
             Audio file
             <input type="file" accept="audio/*" onChange={handleAudioUpload} />
           </label>
+          <p className="section-label">Audio files must be 8 MB or smaller.</p>
           {form.audio_url && (
             <div className="audio-editor-preview">
               <audio controls src={form.audio_url}>Your browser does not support audio playback.</audio>

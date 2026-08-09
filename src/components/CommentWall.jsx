@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { notifyHost } from '../lib/notifyHost';
+import { optimizeImageUpload } from '../lib/mediaUpload';
 
 const GIPHY_API_KEY = import.meta.env.VITE_GIPHY_API_KEY;
 
@@ -41,16 +42,20 @@ export default function CommentWall({ eventId, canComment, guestName, guestEmail
     if (!file) return;
     setBusy(true);
     setMessage('Uploading image...');
-    const path = `${eventId}/${Date.now()}-${safeFileName(file.name) || 'guest-photo'}`;
-    const { error } = await supabase.storage.from('comment-images').upload(path, file);
-    if (error) {
-      setMessage(error.message);
-    } else {
+    try {
+      const optimizedFile = await optimizeImageUpload(file, { maxOutputMB: 1, maxDimension: 1600 });
+      const path = `${eventId}/${Date.now()}-${safeFileName(optimizedFile.name) || 'guest-photo.webp'}`;
+      const { error } = await supabase.storage.from('comment-images').upload(path, optimizedFile, { contentType: optimizedFile.type });
+      if (error) throw error;
       const { data } = supabase.storage.from('comment-images').getPublicUrl(path);
       setImageUrl(data.publicUrl);
       setMessage('Image attached.');
+    } catch (uploadError) {
+      setMessage(uploadError.message || 'The image could not be uploaded.');
+    } finally {
+      setBusy(false);
+      e.target.value = '';
     }
-    setBusy(false);
   }
 
   async function searchGifs(e) {
@@ -129,6 +134,7 @@ export default function CommentWall({ eventId, canComment, guestName, guestEmail
                 Add image
                 <input type="file" accept="image/*" onChange={uploadImage} disabled={busy} />
               </label>
+              <span className="upload-guidance">Optimized automatically (1 MB max).</span>
               {imageUrl && <span className="attachment-chip">Image attached</span>}
               <label className="gif-url-field">
                 GIF URL

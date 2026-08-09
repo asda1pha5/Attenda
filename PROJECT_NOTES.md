@@ -7,6 +7,7 @@
 - Established the Attenda visual system: shared mark/favicon, marketing-oriented sign-up experience, responsive navigation direction, and curated invitation backgrounds.
 - Created Git commit `af71517` as the baseline backup before the Signature bundle work.
 - Moved the experimental movable RSVP overlay into Attenda Signature's Advanced layout. Standard invitations now use dependable above, below, left, or right placements; prior overlay events safely render below the flyer unless a Signature host enables overlay again.
+- Added client-side media safeguards: flyer and guest images are resized/compressed before upload, while audio and animated GIFs have clear limits to keep Supabase storage and bandwidth sustainable.
 
 ## In progress
 
