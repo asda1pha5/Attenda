@@ -10,6 +10,7 @@
 - Added client-side media safeguards: flyer and guest images are resized/compressed before upload, while audio and animated GIFs have clear limits to keep Supabase storage and bandwidth sustainable.
 - Added Attenda's branded envelope social-preview image and event-page-only Open Graph metadata so shared invitation links have a polished preview in compatible messages and social apps without giving the default site an invitation preview.
 - Added clear paid-plan explanations throughout locked Signature controls.
+- Admins can now create or reassign events for any user while each owner remains limited by their own Free or Signature plan; prebuilt Signature settings are preserved for Free owners.
 
 ## In progress
 

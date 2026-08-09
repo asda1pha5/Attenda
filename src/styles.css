@@ -653,6 +653,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .signature-upgrade-link { display: inline-flex; align-items: center; min-height: 34px; padding: 0 11px; border-radius: 8px; background: #eef3eb; color: #526e4e; font-size: 12px; font-weight: 750; text-decoration: none; white-space: nowrap; }
 .signature-locked-message { margin: 16px 0 0; padding: 10px 12px; border: 1px solid #dce3d7; border-radius: 9px; background: #f8faf6; color: #667566; font-size: 12px; line-height: 1.45; }
 .signature-locked-message a { color: #4d6949; font-weight: 750; }
+.event-owner-field { grid-column: 1 / -1; max-width: 480px; }
+.event-owner-field span { display: block; margin-top: 5px; color: #718071; font-size: 11px; line-height: 1.4; }
 .template-choice-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; margin-top: 16px; }
 .template-choice { position: relative; min-height: 126px; overflow: hidden; padding: 10px; border: 1px solid #dce3d7; border-radius: 12px; background: #fff; color: #38483a; cursor: pointer; text-align: left; }
 .template-choice strong, .template-choice small { position: relative; z-index: 1; display: block; }

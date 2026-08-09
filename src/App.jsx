@@ -45,6 +45,15 @@ export default function App() {
         />
 
         <Route
+          path="/admin/new"
+          element={
+            <ProtectedRoute requireAdmin>
+              <EventEditor />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/admin"
           element={
             <ProtectedRoute requireAdmin>

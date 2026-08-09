@@ -82,6 +82,7 @@ export default function EventEditor() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [hadExistingPassword, setHadExistingPassword] = useState(false);
+  const [customers, setCustomers] = useState([]);
   const previewRef = useRef(null);
   const dragState = useRef(null);
 
@@ -90,6 +91,18 @@ export default function EventEditor() {
   useEffect(() => {
     if (isEditing) loadEvent();
   }, [id]);
+
+  useEffect(() => {
+    if (isAdmin) loadCustomers();
+  }, [isAdmin]);
+
+  async function loadCustomers() {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, plan')
+      .order('full_name', { ascending: true });
+    setCustomers(data || []);
+  }
 
   async function loadEvent() {
     const { data, error } = await supabase.from('events').select('*').eq('id', id).single();
@@ -109,6 +122,17 @@ export default function EventEditor() {
   function updateField(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
   }
+
+  const hasSignatureFeatures = Boolean(
+    form.template_id !== 'classic'
+    || form.password_protected
+    || form.photo_album_enabled
+    || form.reminder_enabled
+    || form.remove_branding
+    || form.overlay_enabled
+    || form.box_mode === 'overlay'
+  );
+  const isRestrictedPrebuiltEvent = isEditing && !isPremium && hasSignatureFeatures;
 
   async function handleImageUpload(e) {
     const file = e.target.files[0];
@@ -248,13 +272,17 @@ export default function EventEditor() {
       event_date: form.event_date || null,
       event_time: startTime,
       event_end_time: endTime,
-      template_id: isPremium ? form.template_id : 'classic',
-      password_protected: isPremium ? form.password_protected : false,
-      photo_album_enabled: isPremium ? form.photo_album_enabled : false,
-      reminder_enabled: isPremium ? form.reminder_enabled : false,
-      remove_branding: isPremium ? form.remove_branding : false,
-      box_mode: isPremium && form.box_mode === 'overlay' ? 'overlay' : (form.box_mode === 'overlay' ? 'below' : form.box_mode),
-      overlay_enabled: isPremium && form.box_mode === 'overlay',
+      // A Free owner can update normal invitation details without stripping
+      // Signature settings that an admin prebuilt for them.
+      template_id: isPremium ? form.template_id : (isEditing ? form.template_id : 'classic'),
+      password_protected: isPremium ? form.password_protected : (isEditing ? form.password_protected : false),
+      photo_album_enabled: isPremium ? form.photo_album_enabled : (isEditing ? form.photo_album_enabled : false),
+      reminder_enabled: isPremium ? form.reminder_enabled : (isEditing ? form.reminder_enabled : false),
+      remove_branding: isPremium ? form.remove_branding : (isEditing ? form.remove_branding : false),
+      box_mode: isPremium
+        ? (form.box_mode === 'overlay' ? 'overlay' : form.box_mode)
+        : (isEditing ? form.box_mode : (form.box_mode === 'overlay' ? 'below' : form.box_mode)),
+      overlay_enabled: isPremium ? form.box_mode === 'overlay' : (isEditing ? form.overlay_enabled : false),
     };
     delete payload.id;
     delete payload.created_at;
@@ -384,6 +412,24 @@ export default function EventEditor() {
               onChange={(e) => updateField('registry_link', e.target.value)}
             />
           </label>
+          {isAdmin && (
+            <label className="event-owner-field">
+              Event owner
+              <select
+                value={form.customer_id || user?.id || ''}
+                onChange={(e) => updateField('customer_id', e.target.value)}
+                required
+              >
+                <option value="">Choose a user</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.full_name || customer.email} {customer.plan && customer.plan !== 'free' ? `(${customer.plan})` : ''}
+                  </option>
+                ))}
+              </select>
+              <span>They will see this event in their hub and manage it with their own plan permissions.</span>
+            </label>
+          )}
         </div>
 
         <section className="form-section background-section">
@@ -423,7 +469,9 @@ export default function EventEditor() {
 
           {!isPremium && (
             <p className="signature-locked-message">
-              These tools are included with the paid Attenda Signature plan. Your account is currently on the Free plan.
+              {isRestrictedPrebuiltEvent
+                ? 'This event was prebuilt with paid Attenda Signature features. Your Free account can edit the standard invitation details, but cannot change its Signature settings.'
+                : 'These tools are included with the paid Attenda Signature plan. Your account is currently on the Free plan.'}
               <Link to="/upgrade"> View upgrade options</Link>
             </p>
           )}

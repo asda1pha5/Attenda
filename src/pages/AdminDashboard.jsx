@@ -56,6 +56,7 @@ export default function AdminDashboard() {
         </div>
         <div className="header-actions">
           <ThemeToggle />
+          <Link to="/admin/new" className="primary-btn">+ Create for a user</Link>
           <Link to="/hub" className="secondary-btn">My Own Hub</Link>
           <button className="secondary-btn" onClick={handleSignOut}>Sign Out</button>
         </div>
