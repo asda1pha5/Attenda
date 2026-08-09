@@ -10,7 +10,7 @@ export default function TopNav() {
 
   return (
     <header className="top-nav">
-      <AppBrand to={user ? '/hub' : '/login?mode=signup'} />
+      <AppBrand to={user ? '/hub' : '/'} />
       <button className="nav-menu-button" type="button" aria-label="Open navigation" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
         <span /><span /><span />
       </button>
@@ -22,6 +22,8 @@ export default function TopNav() {
           </>
         ) : !loading && (
           <>
+            <a href="/#how-it-works" onClick={closeMenu}>How it works</a>
+            <Link to="/upgrade" onClick={closeMenu}>Signature</Link>
             <Link to="/login?mode=signin" onClick={closeMenu}>Sign in</Link>
             <Link className="top-nav-cta" to="/login?mode=signup" onClick={closeMenu}>Create a free account</Link>
           </>

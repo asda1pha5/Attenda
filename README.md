@@ -74,6 +74,24 @@ running on the old static HTML file pointing at Formspree, those
 submissions stay in your Formspree dashboard — they aren't migrated
 here automatically.
 
+## Stripe Signature checkout
+
+Before enabling live payments, run [migration_stripe_and_funnel.sql](supabase/migration_stripe_and_funnel.sql) in Supabase's SQL Editor. It adds Stripe billing fields, a secure webhook receipt log, and the funnel tables used by the admin dashboard.
+
+Then create a Stripe **Signature** product and price. The default checkout is recurring; the price must be recurring too. Deploy the two Supabase functions and add their secrets:
+
+```powershell
+supabase functions deploy create-checkout-session
+supabase functions deploy stripe-webhook --no-verify-jwt
+supabase secrets set STRIPE_SECRET_KEY="sk_live_or_test_..." STRIPE_WEBHOOK_SIGNING_SECRET="whsec_..." STRIPE_SIGNATURE_PRICE_ID="price_..." APP_URL="https://your-attenda-domain.com"
+```
+
+In Stripe, create a webhook endpoint at `https://YOUR_PROJECT_REF.supabase.co/functions/v1/stripe-webhook` for `checkout.session.completed`, `customer.subscription.updated`, and `customer.subscription.deleted`. See [the Stripe webhook setup notes](supabase/functions/stripe-webhook/README.md) for the one-time-payment option.
+
+## Funnel and SEO
+
+The public home page is Attenda's landing page. It records anonymous, non-PII acquisition and conversion events (landing views, signup, event creation, and checkout); admins can view the last 30 days at **Admin View → Growth funnel**. The root page has a descriptive title, meta description, semantic headings, and `robots.txt`; private hubs and invitation pages are kept out of search indexing.
+
 ## Notes
 - No customer or admin credentials, Formspree keys, or other secrets
   are stored in this code — only the public Supabase URL and anon key,

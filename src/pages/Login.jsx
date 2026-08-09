@@ -5,6 +5,7 @@ import { useAuth } from '../lib/useAuth';
 import { usePageTitle } from '../lib/usePageTitle';
 import floralTable from '../assets/signup-floral-table.png';
 import friendsFerrisWheel from '../assets/signup-friends-ferris-wheel.png';
+import { trackFunnelEvent } from '../lib/funnelAnalytics';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ export default function Login() {
     setInfo('');
     setBusy(true);
 
+    if (mode === 'signup') await trackFunnelEvent('signup_started');
+
     if (mode === 'signin') {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
@@ -46,7 +49,10 @@ export default function Login() {
         options: { data: { full_name: fullName } },
       });
       if (error) setError(error.message);
-      else setInfo('Account created. Check your email to confirm, then sign in.');
+      else {
+        await trackFunnelEvent('signup_completed');
+        setInfo('Account created. Check your email to confirm, then sign in.');
+      }
     }
     setBusy(false);
   }

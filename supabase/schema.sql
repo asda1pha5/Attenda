@@ -12,6 +12,9 @@ create table public.profiles (
   role text not null default 'customer' check (role in ('admin','customer')),
   plan text not null default 'free' check (plan in ('free', 'signature', 'pro')),
   plan_expires_at timestamptz,
+  stripe_customer_id text,
+  stripe_subscription_id text unique,
+  subscription_status text,
   created_at timestamptz not null default now()
 );
 
@@ -112,6 +115,29 @@ create table public.event_photos (
   created_at timestamptz not null default now()
 );
 
+create table public.stripe_webhook_events (
+  id text primary key,
+  event_type text not null,
+  received_at timestamptz not null default now()
+);
+
+create table public.funnel_events (
+  id uuid primary key default gen_random_uuid(),
+  event_name text not null check (char_length(event_name) between 1 and 64),
+  visitor_id text not null check (char_length(visitor_id) between 1 and 100),
+  user_id uuid references public.profiles(id) on delete set null,
+  path text,
+  referrer_host text,
+  source text,
+  medium text,
+  campaign text,
+  properties jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index funnel_events_created_at_idx on public.funnel_events (created_at desc);
+create index funnel_events_event_name_idx on public.funnel_events (event_name, created_at desc);
+
 -- ---------- ROW LEVEL SECURITY ----------
 alter table public.profiles enable row level security;
 alter table public.events enable row level security;
@@ -119,6 +145,8 @@ alter table public.rsvps enable row level security;
 alter table public.comments enable row level security;
 alter table public.event_access enable row level security;
 alter table public.event_photos enable row level security;
+alter table public.stripe_webhook_events enable row level security;
+alter table public.funnel_events enable row level security;
 
 create or replace function public.is_admin()
 returns boolean as $$
@@ -133,6 +161,35 @@ create policy "view own profile" on public.profiles
 
 create policy "update own profile" on public.profiles
   for update using (auth.uid() = id or public.is_admin());
+
+create or replace function public.protect_profile_access_fields()
+returns trigger
+language plpgsql
+security definer set search_path = public as $$
+begin
+  if auth.uid() = old.id and not public.is_admin() and (
+    new.role is distinct from old.role
+    or new.plan is distinct from old.plan
+    or new.plan_expires_at is distinct from old.plan_expires_at
+    or new.stripe_customer_id is distinct from old.stripe_customer_id
+    or new.stripe_subscription_id is distinct from old.stripe_subscription_id
+    or new.subscription_status is distinct from old.subscription_status
+  ) then
+    raise exception 'Plan and role changes are not allowed.';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger protect_profile_access_fields
+  before update on public.profiles
+  for each row execute procedure public.protect_profile_access_fields();
+
+create policy "admin can view funnel events" on public.funnel_events
+  for select using (public.is_admin());
+
+create policy "visitors can record funnel events" on public.funnel_events
+  for insert with check (user_id is null or user_id = auth.uid());
 
 -- Events: customers manage only their own; admins manage all.
 -- Public invitations are served through get_public_event so private events do

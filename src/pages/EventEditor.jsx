@@ -6,6 +6,7 @@ import { usePageTitle } from '../lib/usePageTitle';
 import { flyerBackgrounds } from '../lib/flyerBackgrounds';
 import { signatureTemplates } from '../lib/signatureTemplates';
 import { optimizeImageUpload, validateAudioUpload } from '../lib/mediaUpload';
+import { trackFunnelEvent } from '../lib/funnelAnalytics';
 
 const emptyEvent = {
   title: '',
@@ -306,6 +307,7 @@ export default function EventEditor() {
     }
 
     const eventId = result.data.id;
+    if (!isEditing) void trackFunnelEvent('event_created', {}, user.id);
     if (isPremium && (form.event_password.trim() || !form.password_protected)) {
       const { error: passwordError } = await supabase.rpc('set_event_password', {
         target_event_id: eventId,

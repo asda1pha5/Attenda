@@ -7,13 +7,15 @@ import PublicEvent from './pages/PublicEvent';
 import ProtectedRoute from './components/ProtectedRoute';
 import TopNav from './components/TopNav';
 import Upgrade from './pages/Upgrade';
+import Landing from './pages/Landing';
+import FunnelDashboard from './pages/FunnelDashboard';
 
 export default function App() {
   return (
     <BrowserRouter>
       <TopNav />
       <Routes>
-        <Route path="/" element={<Navigate to="/hub" replace />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/upgrade" element={<Upgrade />} />
 
@@ -58,6 +60,14 @@ export default function App() {
           element={
             <ProtectedRoute requireAdmin>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/funnel"
+          element={
+            <ProtectedRoute requireAdmin>
+              <FunnelDashboard />
             </ProtectedRoute>
           }
         />
