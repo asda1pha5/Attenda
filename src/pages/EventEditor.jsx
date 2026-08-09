@@ -421,6 +421,13 @@ export default function EventEditor() {
             {!isPremium && <Link className="signature-upgrade-link" to="/upgrade">View Signature</Link>}
           </div>
 
+          {!isPremium && (
+            <p className="signature-locked-message">
+              These tools are included with the paid Attenda Signature plan. Your account is currently on the Free plan.
+              <Link to="/upgrade"> View upgrade options</Link>
+            </p>
+          )}
+
           <div className="template-choice-grid">
             {signatureTemplates.map((template) => (
               <button
@@ -431,7 +438,7 @@ export default function EventEditor() {
               >
                 <span className="template-preview" aria-hidden="true" />
                 <strong>{template.label}</strong>
-                <small>{template.premium && !isPremium ? 'Signature' : template.description}</small>
+                <small>{template.premium && !isPremium ? 'Paid Signature feature' : template.description}</small>
               </button>
             ))}
           </div>
@@ -462,7 +469,7 @@ export default function EventEditor() {
           </div>
 
           <details className={`signature-overlay-layout ${isPremium ? '' : 'is-locked'}`}>
-            <summary>Advanced layout: place RSVP over the flyer <span>Signature</span></summary>
+            <summary>Advanced layout: place RSVP over the flyer <span>{isPremium ? 'Signature' : 'Paid plan required'}</span></summary>
             <p>For designs with generous open space. The RSVP form stays within the flyer and scrolls when needed.</p>
             <label className="checkbox-label">
               <input
