@@ -97,9 +97,10 @@ body {
 .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .theme-toggle {
   position: relative;
-  width: 58px;
+  width: 64px;
+  min-width: 64px;
   height: 30px;
-  padding: 0 6px;
+  padding: 0 7px;
   border: 0;
   border-radius: 999px;
   display: inline-flex;
@@ -108,7 +109,8 @@ body {
   background: #dfe8eb;
   color: #526a75;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
 }
 @media (max-width: 860px) {
@@ -135,7 +137,8 @@ body {
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   transition: transform 180ms ease;
 }
-.theme-toggle-thumb.is-dark { transform: translateX(28px); }
+.theme-toggle-icon { position: relative; z-index: 1; width: 16px; text-align: center; }
+.theme-toggle-thumb.is-dark { transform: translateX(34px); }
 
 .primary-btn, .secondary-btn, .tiny-btn {
   border: none;
@@ -707,6 +710,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .dashboard-header { align-items: stretch; }
   .header-actions { width: 100%; }
   .header-actions > * { flex: 1 1 auto; justify-content: center; }
+  .header-actions > .theme-toggle { flex: 0 0 64px; }
   .form-grid, .form-grid.four-col { grid-template-columns: 1fr; }
   .background-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .template-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.signature-options { grid-template-columns: 1fr; }.signature-password-field { grid-column: auto; }.upgrade-feature-list { grid-template-columns: 1fr; }

@@ -11,6 +11,7 @@
 - Added Attenda's branded envelope social-preview image and event-page-only Open Graph metadata so shared invitation links have a polished preview in compatible messages and social apps without giving the default site an invitation preview.
 - Added clear paid-plan explanations throughout locked Signature controls.
 - Admins can now create or reassign events for any user while each owner remains limited by their own Free or Signature plan; prebuilt Signature settings are preserved for Free owners.
+- Refined the mobile theme switch so it remains readable and starts in light mode.
 
 ## In progress
 
