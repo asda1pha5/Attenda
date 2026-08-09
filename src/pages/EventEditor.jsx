@@ -24,6 +24,7 @@ const emptyEvent = {
   box_left: 4,
   box_width: 92,
   box_height: 25,
+  overlay_enabled: false,
   flyer_background: 'ivory',
   template_id: 'classic',
   password_protected: false,
@@ -92,7 +93,14 @@ export default function EventEditor() {
   async function loadEvent() {
     const { data, error } = await supabase.from('events').select('*').eq('id', id).single();
     if (!error && data) {
-      setForm({ ...emptyEvent, ...data });
+      const savedEvent = { ...emptyEvent, ...data };
+      // Older invitations used the experimental overlay by default. Keep those
+      // invitations in the dependable below-flyer layout until a Signature
+      // host deliberately enables the advanced layout again.
+      if (savedEvent.box_mode === 'overlay' && !savedEvent.overlay_enabled) {
+        savedEvent.box_mode = 'below';
+      }
+      setForm(savedEvent);
       setHadExistingPassword(Boolean(data.password_protected));
     }
   }
@@ -239,6 +247,8 @@ export default function EventEditor() {
       photo_album_enabled: isPremium ? form.photo_album_enabled : false,
       reminder_enabled: isPremium ? form.reminder_enabled : false,
       remove_branding: isPremium ? form.remove_branding : false,
+      box_mode: isPremium && form.box_mode === 'overlay' ? 'overlay' : (form.box_mode === 'overlay' ? 'below' : form.box_mode),
+      overlay_enabled: isPremium && form.box_mode === 'overlay',
     };
     delete payload.id;
     delete payload.created_at;
@@ -444,6 +454,21 @@ export default function EventEditor() {
               Remove Attenda branding from this invitation
             </label>
           </div>
+
+          <details className={`signature-overlay-layout ${isPremium ? '' : 'is-locked'}`}>
+            <summary>Advanced layout: place RSVP over the flyer <span>Signature</span></summary>
+            <p>For designs with generous open space. The RSVP form stays within the flyer and scrolls when needed.</p>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={form.box_mode === 'overlay'}
+                disabled={!isPremium || !form.image_url || !form.show_image}
+                onChange={(e) => handleLayoutChange(e.target.checked ? 'overlay' : 'below')}
+              />
+              Use the advanced flyer overlay
+            </label>
+            {!form.image_url && <small>Add a flyer image first to unlock this layout.</small>}
+          </details>
         </section>
 
         <label className="upload-label">
@@ -464,9 +489,9 @@ export default function EventEditor() {
             </label>
             <button type="button" className="tiny-btn danger" onClick={handleRemoveImage}>Remove image</button>
             <p className="section-label">Flyer preview</p>
-            <div className={`flyer-preview ${form.box_mode === 'overlay' && form.show_image ? 'overlay-preview' : ''}`} ref={previewRef}>
+            <div className={`flyer-preview ${isPremium && form.box_mode === 'overlay' && form.show_image ? 'overlay-preview' : ''}`} ref={previewRef}>
               <img src={form.image_url} alt="Flyer preview" draggable={false} />
-              {form.box_mode === 'overlay' && form.show_image && (
+              {isPremium && form.box_mode === 'overlay' && form.show_image && (
                 <div
                   className="flyer-preview-box draggable"
                   style={{
@@ -503,19 +528,18 @@ export default function EventEditor() {
         <label className="rsvp-placement-control">
           RSVP placement
           <select
-            value={form.box_mode}
+            value={form.box_mode === 'overlay' ? 'below' : form.box_mode}
             onChange={(e) => handleLayoutChange(e.target.value)}
           >
             <option value="above">Above the flyer</option>
             <option value="below">Below the flyer</option>
             <option value="left">To the left of the flyer</option>
             <option value="right">To the right of the flyer</option>
-            <option value="overlay">Over the flyer (moveable)</option>
           </select>
-          <span>The RSVP panel is automatically sized so its contents remain readable.</span>
+          <span>Choose a clean, readable layout for every guest.</span>
         </label>
 
-        {form.box_mode === 'overlay' && form.image_url && form.show_image && (
+        {isPremium && form.box_mode === 'overlay' && form.image_url && form.show_image && (
           <div className="overlay-editor">
             <p className="section-label">Drag the RSVP box on the flyer to position it.</p>
             <label className="overlay-position-control">

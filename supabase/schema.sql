@@ -62,6 +62,7 @@ create table public.events (
   photo_album_enabled boolean not null default false,
   reminder_enabled boolean not null default false,
   remove_branding boolean not null default false,
+  overlay_enabled boolean not null default false,
   is_published boolean not null default true,
   created_at timestamptz not null default now()
 );

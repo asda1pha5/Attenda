@@ -115,7 +115,12 @@ export default function PublicEvent() {
   const accent = '#a87a45';
   const hasImage = Boolean(event.image_url) && event.show_image !== false;
   const legacySide = event.box_left >= 50 ? 'right' : 'left';
-  const layout = hasImage ? (event.box_mode || legacySide) : 'standalone';
+  const requestedLayout = event.box_mode || legacySide;
+  // Overlay used to be a standard setting. Existing invitations fall back to
+  // the reliable below-flyer layout unless a Signature host enabled it.
+  const layout = hasImage
+    ? (requestedLayout === 'overlay' && !event.overlay_enabled ? 'below' : requestedLayout)
+    : 'standalone';
   const cssVars = { '--theme': theme, '--accent': accent, '--flyer-bg': background.color, '--flyer-ink': background.ink };
 
   const registryButton = event.registry_link && (

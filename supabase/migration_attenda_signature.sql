@@ -14,7 +14,8 @@ alter table public.events
   add column if not exists password_protected boolean not null default false,
   add column if not exists photo_album_enabled boolean not null default false,
   add column if not exists reminder_enabled boolean not null default false,
-  add column if not exists remove_branding boolean not null default false;
+  add column if not exists remove_branding boolean not null default false,
+  add column if not exists overlay_enabled boolean not null default false;
 
 alter table public.rsvps
   add column if not exists reminder_sent_at timestamptz;

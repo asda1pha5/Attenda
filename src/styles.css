@@ -661,6 +661,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .template-choice.is-locked::after { content: 'Signature'; position: absolute; top: 16px; right: 16px; z-index: 2; padding: 3px 6px; border-radius: 999px; background: rgba(38,51,42,.78); color: #fff; font-size: 9px; font-weight: 700; }
 .signature-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 22px; margin-top: 14px; }
 .signature-options .checkbox-label { margin: 5px 0; }.signature-options.is-locked { opacity: .58; }
+.signature-overlay-layout { margin-top: 18px; padding: 13px 15px; border: 1px solid #dce3d7; border-radius: 10px; background: #f8faf6; }
+.signature-overlay-layout summary { color: #415442; font-size: 13px; font-weight: 750; cursor: pointer; }
+.signature-overlay-layout summary span { margin-left: 6px; color: #71806f; font-size: 10px; letter-spacing: .4px; text-transform: uppercase; }
+.signature-overlay-layout p { margin: 10px 0; color: #687667; font-size: 12px; line-height: 1.45; }
+.signature-overlay-layout small { display: block; margin-top: 8px; color: #77826f; font-size: 11px; }
 .signature-password-field { grid-column: 1 / -1; max-width: 380px; margin: 4px 0 10px; }
 .upgrade-page, .invitation-lock-page { display: grid; min-height: calc(100vh - 66px); place-items: center; padding: 30px 18px; background: #f4f5ef; }
 .upgrade-card, .invitation-lock-card { width: min(100%, 640px); padding: clamp(30px,6vw,56px); border: 1px solid var(--attenda-border); border-radius: 20px; background: #fff; box-shadow: 0 18px 40px rgba(39,55,42,.10); }
