@@ -667,14 +667,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .template-garden .template-preview { background: #dfe8dc; }.template-gala .template-preview { background: #29363b; }.template-celebration .template-preview { background: #f5e3e2; }.template-minimal .template-preview { background: #e7eeeb; }
 .template-choice.is-selected { border-color: var(--attenda-green); box-shadow: 0 0 0 2px rgba(100,121,95,.18); }
 .template-choice.is-locked::after { content: 'Signature'; position: absolute; top: 16px; right: 16px; z-index: 2; padding: 3px 6px; border-radius: 999px; background: rgba(38,51,42,.78); color: #fff; font-size: 9px; font-weight: 700; }
-.signature-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 22px; margin-top: 14px; }
-.signature-options .checkbox-label { margin: 5px 0; }.signature-options.is-locked { opacity: .58; }
+.signature-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 10px 22px; margin-top: 14px; }
+.signature-option { min-height: 34px; }.signature-options .checkbox-label { margin: 5px 0; }.signature-options.is-locked { opacity: .58; }
+.signature-password-option, .signature-reminder-option { grid-row: span 2; }
+.signature-password-field, .reminder-timing-field { display: grid; gap: 5px; margin: 10px 0 0 24px; color: #627062; font-size: 11px; font-weight: 700; }
+.signature-password-field input, .reminder-timing-field select { width: min(100%, 320px); min-height: 38px; box-sizing: border-box; }
 .signature-overlay-layout { margin-top: 18px; padding: 13px 15px; border: 1px solid #dce3d7; border-radius: 10px; background: #f8faf6; }
 .signature-overlay-layout summary { color: #415442; font-size: 13px; font-weight: 750; cursor: pointer; }
 .signature-overlay-layout summary span { margin-left: 6px; color: #71806f; font-size: 10px; letter-spacing: .4px; text-transform: uppercase; }
 .signature-overlay-layout p { margin: 10px 0; color: #687667; font-size: 12px; line-height: 1.45; }
 .signature-overlay-layout small { display: block; margin-top: 8px; color: #77826f; font-size: 11px; }
-.signature-password-field { grid-column: 1 / -1; max-width: 380px; margin: 4px 0 10px; }
 .upgrade-page, .invitation-lock-page { display: grid; min-height: calc(100vh - 66px); place-items: center; padding: 30px 18px; background: #f4f5ef; }
 .upgrade-card, .invitation-lock-card { width: min(100%, 640px); padding: clamp(30px,6vw,56px); border: 1px solid var(--attenda-border); border-radius: 20px; background: #fff; box-shadow: 0 18px 40px rgba(39,55,42,.10); }
 .upgrade-card h1, .invitation-lock-card h1 { margin: 0; color: #304034; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(30px,5vw,48px); letter-spacing: -1.1px; line-height: 1.05; }
@@ -728,7 +730,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .header-actions > .theme-toggle { flex: 0 0 64px; }
   .form-grid, .form-grid.four-col { grid-template-columns: 1fr; }
   .background-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .template-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.signature-options { grid-template-columns: 1fr; }.signature-password-field { grid-column: auto; }.upgrade-feature-list { grid-template-columns: 1fr; }
+  .template-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.signature-options { grid-template-columns: 1fr; }.signature-password-option, .signature-reminder-option { grid-row: auto; }.upgrade-feature-list { grid-template-columns: 1fr; }
   .section-heading-row { align-items: center; }
   .admin-filter, .customer-search { display: flex; flex-direction: column; align-items: stretch; gap: 7px; margin-right: 0; }
   .admin-filter > label { margin: 0 0 12px; }

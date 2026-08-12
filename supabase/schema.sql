@@ -64,6 +64,7 @@ create table public.events (
   password_protected boolean not null default false,
   photo_album_enabled boolean not null default false,
   reminder_enabled boolean not null default false,
+  reminder_days_before integer not null default 1 check (reminder_days_before in (1, 3, 7)),
   remove_branding boolean not null default false,
   overlay_enabled boolean not null default false,
   is_published boolean not null default true,

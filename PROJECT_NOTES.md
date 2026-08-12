@@ -13,13 +13,13 @@
 - Admins can now create or reassign events for any user while each owner remains limited by their own Free or Signature plan; prebuilt Signature settings are preserved for Free owners.
 - Refined the mobile theme switch so it remains readable and starts in light mode.
 - Added a public landing page, SEO basics, privacy-conscious funnel metrics, an admin funnel view, and Stripe Checkout/webhook scaffolding for Signature activation.
+- Stabilized the Signature control layout and added configurable 1-day, 3-day, or 1-week event reminders.
 
 ## In progress
 
-- Attenda Signature: premium template looks, password protection, remove-branding, guest photo album, reminder setting, and reminder-delivery function.
-- Configure the Stripe price, secrets, webhook endpoint, and Supabase function deployment to activate live Signature sales.
+- Finish live Stripe activation after the successful test-mode checkout.
 
 ## Next
 
-- Deploy the reminder function and schedule it after Resend is configured.
+- Run the reminder-timing migration, then deploy and schedule the reminder function after Resend is configured.
 - Test the complete production flow on mobile: sign-up, invitation creation, RSVP, password access, comments, and reminders.

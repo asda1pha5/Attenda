@@ -14,6 +14,7 @@ alter table public.events
   add column if not exists password_protected boolean not null default false,
   add column if not exists photo_album_enabled boolean not null default false,
   add column if not exists reminder_enabled boolean not null default false,
+  add column if not exists reminder_days_before integer not null default 1 check (reminder_days_before in (1, 3, 7)),
   add column if not exists remove_branding boolean not null default false,
   add column if not exists overlay_enabled boolean not null default false;
 

@@ -33,6 +33,7 @@ const emptyEvent = {
   event_password: '',
   photo_album_enabled: false,
   reminder_enabled: false,
+  reminder_days_before: 1,
   remove_branding: false,
   rsvp_title: 'Please RSVP',
   rsvp_subtitle: '',
@@ -279,6 +280,7 @@ export default function EventEditor() {
       password_protected: isPremium ? form.password_protected : (isEditing ? form.password_protected : false),
       photo_album_enabled: isPremium ? form.photo_album_enabled : (isEditing ? form.photo_album_enabled : false),
       reminder_enabled: isPremium ? form.reminder_enabled : (isEditing ? form.reminder_enabled : false),
+      reminder_days_before: isPremium ? Number(form.reminder_days_before) || 1 : (isEditing ? Number(form.reminder_days_before) || 1 : 1),
       remove_branding: isPremium ? form.remove_branding : (isEditing ? form.remove_branding : false),
       box_mode: isPremium
         ? (form.box_mode === 'overlay' ? 'overlay' : form.box_mode)
@@ -494,28 +496,26 @@ export default function EventEditor() {
           </div>
 
           <div className={`signature-options ${isPremium ? '' : 'is-locked'}`}>
-            <label className="checkbox-label">
-              <input type="checkbox" checked={form.password_protected} disabled={!isPremium} onChange={(e) => updateField('password_protected', e.target.checked)} />
-              Protect this invitation with an access code
-            </label>
-            {form.password_protected && isPremium && (
-              <label className="signature-password-field">
-                Access code
-                <input type="password" placeholder={isEditing ? 'Leave blank to keep the current code' : 'Choose an access code'} value={form.event_password} onChange={(e) => updateField('event_password', e.target.value)} />
+            <div className="signature-option signature-password-option">
+              <label className="checkbox-label">
+                <input type="checkbox" checked={form.password_protected} disabled={!isPremium} onChange={(e) => updateField('password_protected', e.target.checked)} />
+                Protect this invitation with an access code
               </label>
-            )}
-            <label className="checkbox-label">
-              <input type="checkbox" checked={form.photo_album_enabled} disabled={!isPremium} onChange={(e) => updateField('photo_album_enabled', e.target.checked)} />
-              Enable the event photo album
-            </label>
-            <label className="checkbox-label">
-              <input type="checkbox" checked={form.reminder_enabled} disabled={!isPremium} onChange={(e) => updateField('reminder_enabled', e.target.checked)} />
-              Send guests a day-before event reminder
-            </label>
-            <label className="checkbox-label">
-              <input type="checkbox" checked={form.remove_branding} disabled={!isPremium} onChange={(e) => updateField('remove_branding', e.target.checked)} />
-              Remove Attenda branding from this invitation
-            </label>
+              {form.password_protected && isPremium && (
+                <label className="signature-password-field">
+                  Access code
+                  <input type="password" placeholder={isEditing ? 'Leave blank to keep the current code' : 'Choose an access code'} value={form.event_password} onChange={(e) => updateField('event_password', e.target.value)} />
+                </label>
+              )}
+            </div>
+            <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.photo_album_enabled} disabled={!isPremium} onChange={(e) => updateField('photo_album_enabled', e.target.checked)} />Enable the event photo album</label></div>
+            <div className="signature-option signature-reminder-option">
+              <label className="checkbox-label"><input type="checkbox" checked={form.reminder_enabled} disabled={!isPremium} onChange={(e) => updateField('reminder_enabled', e.target.checked)} />Send guests an event reminder</label>
+              {form.reminder_enabled && isPremium && (
+                <label className="reminder-timing-field">Send <select value={form.reminder_days_before || 1} onChange={(e) => updateField('reminder_days_before', Number(e.target.value))}><option value={1}>1 day before</option><option value={3}>3 days before</option><option value={7}>1 week before</option></select></label>
+              )}
+            </div>
+            <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.remove_branding} disabled={!isPremium} onChange={(e) => updateField('remove_branding', e.target.checked)} />Remove Attenda branding from this invitation</label></div>
           </div>
 
           <details className={`signature-overlay-layout ${isPremium ? '' : 'is-locked'}`}>
