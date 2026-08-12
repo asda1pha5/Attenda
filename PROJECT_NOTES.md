@@ -14,6 +14,7 @@
 - Refined the mobile theme switch so it remains readable and starts in light mode.
 - Added a public landing page, SEO basics, privacy-conscious funnel metrics, an admin funnel view, and Stripe Checkout/webhook scaffolding for Signature activation.
 - Stabilized the Signature control layout and added configurable 1-day, 3-day, or 1-week event reminders.
+- Refreshed the landing page with scroll-in motion, invitation graphics, and a new branded stationery visual.
 
 ## In progress
 
