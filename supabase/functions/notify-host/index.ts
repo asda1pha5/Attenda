@@ -62,13 +62,13 @@ Deno.serve(async (request) => {
       headers: {
         Authorization: `Bearer ${resendKey}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'Attenda/1.0',
+        'User-Agent': 'Attendaa/1.0',
       },
       body: JSON.stringify({
         from: fromEmail,
         to: [host.email],
         subject: `New ${label} for ${event.title || 'your invitation'}`,
-        html: `<p>Someone left a new ${label} on <strong>${eventTitle}</strong>.</p><p>Open Attenda to view it.</p>`,
+        html: `<p>Someone left a new ${label} on <strong>${eventTitle}</strong>.</p><p>Open Attendaa to view it.</p>`,
       }),
     });
     if (!emailResponse.ok) throw new Error(`Resend rejected the email: ${await emailResponse.text()}`);

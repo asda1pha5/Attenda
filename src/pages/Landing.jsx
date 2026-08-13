@@ -32,7 +32,7 @@ export default function Landing() {
     <main className="landing-page">
       <section className="landing-hero landing-reveal is-visible">
         <div className="landing-copy">
-          <p className="landing-eyebrow">ATTENDA · PLAN, INVITE, CELEBRATE</p>
+          <p className="landing-eyebrow">ATTENDAA · PLAN, INVITE, CELEBRATE</p>
           <h1>The RSVP page your event deserves.</h1>
           <p className="landing-lede">Turn the details of your celebration into one beautiful link—easy to share, simple for guests, and organized for you.</p>
           <div className="landing-actions">
@@ -68,14 +68,14 @@ export default function Landing() {
 
       <section className="landing-signature landing-reveal" id="signature">
         <div>
-          <p className="landing-eyebrow">ATTENDA SIGNATURE</p>
+          <p className="landing-eyebrow">ATTENDAA SIGNATURE</p>
           <h2>For the moments you want to make unforgettable.</h2>
           <p>Unlock private access codes, elevated invitation looks, guest photo albums, reminders, and an unbranded experience.</p>
         </div>
         <Link className="secondary-btn" to="/upgrade" onClick={() => void trackFunnelEvent('signature_interest_clicked', { placement: 'landing' }, user?.id)}>Explore Signature</Link>
       </section>
 
-      <section className="landing-stationery landing-reveal" aria-label="Attenda invitation stationery">
+      <section className="landing-stationery landing-reveal" aria-label="Attendaa invitation stationery">
         <img src={stationeryImage} alt="Elegant invitation cards and an RSVP envelope" />
         <div className="landing-stationery-copy">
           <p className="landing-eyebrow">THE DETAILS, BEAUTIFULLY HELD</p>

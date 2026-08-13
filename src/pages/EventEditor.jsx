@@ -440,7 +440,7 @@ export default function EventEditor() {
           <div className="section-heading-row">
             <div>
               <h3 className="form-section-title">Invitation background</h3>
-              <p className="section-label">Choose one of Attenda's curated backgrounds.</p>
+              <p className="section-label">Choose one of Attendaa's curated backgrounds.</p>
             </div>
             <span className="background-count">12 styles</span>
           </div>
@@ -464,7 +464,7 @@ export default function EventEditor() {
         <section className="form-section signature-section">
           <div className="section-heading-row">
             <div>
-              <p className="signature-kicker">Attenda Signature</p>
+              <p className="signature-kicker">Attendaa Signature</p>
               <h3 className="form-section-title">Make this invitation feel unforgettable</h3>
               <p className="section-label">Premium tools for the moments that deserve more.</p>
             </div>
@@ -474,8 +474,8 @@ export default function EventEditor() {
           {!isPremium && (
             <p className="signature-locked-message">
               {isRestrictedPrebuiltEvent
-                ? 'This event was prebuilt with paid Attenda Signature features. Your Free account can edit the standard invitation details, but cannot change its Signature settings.'
-                : 'These tools are included with the paid Attenda Signature plan. Your account is currently on the Free plan.'}
+                ? 'This event was prebuilt with paid Attendaa Signature features. Your Free account can edit the standard invitation details, but cannot change its Signature settings.'
+                : 'These tools are included with the paid Attendaa Signature plan. Your account is currently on the Free plan.'}
               <Link to="/upgrade"> View upgrade options</Link>
             </p>
           )}
@@ -515,7 +515,7 @@ export default function EventEditor() {
                 <label className="reminder-timing-field">Send <select value={form.reminder_days_before || 1} onChange={(e) => updateField('reminder_days_before', Number(e.target.value))}><option value={1}>1 day before</option><option value={3}>3 days before</option><option value={7}>1 week before</option></select></label>
               )}
             </div>
-            <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.remove_branding} disabled={!isPremium} onChange={(e) => updateField('remove_branding', e.target.checked)} />Remove Attenda branding from this invitation</label></div>
+            <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.remove_branding} disabled={!isPremium} onChange={(e) => updateField('remove_branding', e.target.checked)} />Remove Attendaa branding from this invitation</label></div>
           </div>
 
           <details className={`signature-overlay-layout ${isPremium ? '' : 'is-locked'}`}>

@@ -4,13 +4,14 @@ import { useAuth } from '../lib/useAuth';
 import { usePageTitle } from '../lib/usePageTitle';
 import { supabase } from '../lib/supabaseClient';
 import { trackFunnelEvent } from '../lib/funnelAnalytics';
+import signatureMark from '../assets/attendaa-signature-mark.png';
 
 export default function Upgrade() {
   const { user, isPremium } = useAuth();
   const [searchParams] = useSearchParams();
   const [checkoutError, setCheckoutError] = useState('');
   const [checkingOut, setCheckingOut] = useState(false);
-  usePageTitle('Attenda Signature');
+  usePageTitle('Attendaa Signature');
 
   useEffect(() => {
     void trackFunnelEvent('pricing_view', {}, user?.id);
@@ -33,11 +34,14 @@ export default function Upgrade() {
   return (
     <main className="upgrade-page">
       <section className="upgrade-card">
-        <p className="signature-kicker">Attenda Signature</p>
+        <div className="signature-brand-lockup">
+          <img src={signatureMark} alt="Attendaa Signature" />
+          <p className="signature-kicker">Attendaa Signature</p>
+        </div>
         <h1>Make the invitation part of the celebration.</h1>
         <p className="upgrade-lede">For the events people will remember, Signature adds privacy, richer design, guest photos, reminders, and a clean unbranded experience.</p>
         <div className="upgrade-feature-list">
-          <span>Premium invitation looks</span><span>Private access codes</span><span>Guest photo album</span><span>Day-before reminders</span><span>Remove Attenda branding</span>
+          <span>Premium invitation looks</span><span>Private access codes</span><span>Guest photo album</span><span>Day-before reminders</span><span>Remove Attendaa branding</span>
         </div>
         {searchParams.get('checkout') === 'success' && <p className="checkout-message">Thanks—your payment was received. Your Signature access will be active in a moment.</p>}
         {searchParams.get('checkout') === 'cancelled' && <p className="upgrade-note">Checkout was cancelled. Your free account is unchanged.</p>}

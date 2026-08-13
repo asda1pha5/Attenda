@@ -35,7 +35,7 @@ Deno.serve(async (request) => {
       for (const guest of guests || []) {
         const response = await fetch('https://api.resend.com/emails', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json', 'User-Agent': 'Attenda/1.0' },
+          headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json', 'User-Agent': 'Attendaa/1.0' },
           body: JSON.stringify({
             from: fromEmail,
             to: [guest.guest_email],

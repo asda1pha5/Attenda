@@ -679,6 +679,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .signature-overlay-layout small { display: block; margin-top: 8px; color: #77826f; font-size: 11px; }
 .upgrade-page, .invitation-lock-page { display: grid; min-height: calc(100vh - 66px); place-items: center; padding: 30px 18px; background: #f4f5ef; }
 .upgrade-card, .invitation-lock-card { width: min(100%, 640px); padding: clamp(30px,6vw,56px); border: 1px solid var(--attenda-border); border-radius: 20px; background: #fff; box-shadow: 0 18px 40px rgba(39,55,42,.10); }
+.signature-brand-lockup { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; }
+.signature-brand-lockup img { width: 42px; height: 42px; object-fit: contain; }
+.signature-brand-lockup .signature-kicker { margin: 0; }
 .upgrade-card h1, .invitation-lock-card h1 { margin: 0; color: #304034; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(30px,5vw,48px); letter-spacing: -1.1px; line-height: 1.05; }
 .upgrade-lede, .invitation-lock-card > p { color: #617062; font-size: 16px; line-height: 1.55; }
 .upgrade-feature-list { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 9px; margin: 26px 0; }.upgrade-feature-list span { padding: 10px; border-radius: 9px; background: #f1f4ee; color: #4e644d; font-size: 13px; font-weight: 650; }

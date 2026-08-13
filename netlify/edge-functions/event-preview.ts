@@ -7,7 +7,7 @@ function escapeHtml(value: string) {
 }
 
 function eventMeta(previewUrl: string) {
-  const safeTitle = escapeHtml('You\'re invited with Attenda');
+  const safeTitle = escapeHtml('You\'re invited with Attendaa');
   const description = 'A thoughtful invitation is waiting for you.';
   return `
     <meta property="og:type" content="website" />
@@ -16,7 +16,7 @@ function eventMeta(previewUrl: string) {
     <meta property="og:image" content="${previewUrl}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="An Attenda invitation envelope with a checkmark seal" />
+    <meta property="og:image:alt" content="An Attendaa invitation envelope with a checkmark seal" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${safeTitle}" />
     <meta name="twitter:description" content="${description}" />

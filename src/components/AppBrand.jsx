@@ -3,9 +3,9 @@ import mark from '../assets/attenda-mark.png';
 
 export default function AppBrand({ to = '/login?mode=signup', subtle = false }) {
   return (
-    <Link className={`app-brand${subtle ? ' app-brand-subtle' : ''}`} to={to} aria-label="Attenda home">
+    <Link className={`app-brand${subtle ? ' app-brand-subtle' : ''}`} to={to} aria-label="Attendaa home">
       <img src={mark} alt="" />
-      <span>Attenda</span>
+      <span>Attendaa</span>
     </Link>
   );
 }

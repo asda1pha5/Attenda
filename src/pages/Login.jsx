@@ -60,7 +60,7 @@ export default function Login() {
   return (
     <div className={`auth-page ${mode === 'signup' ? 'signup-page' : ''}`}>
       {mode === 'signup' && (
-        <section className="signup-showcase" aria-label="What you can do with Attenda">
+        <section className="signup-showcase" aria-label="What you can do with Attendaa">
           <div className="signup-photo-wrap">
             <img
               className="signup-main-photo"
@@ -78,7 +78,7 @@ export default function Login() {
           <p className="signup-kicker">More than an RSVP link</p>
           <h1>Bring your next gathering to life.</h1>
           <p className="signup-lede">
-            Attenda turns your event details into a polished, shareable invitation that makes it easy for guests to say yes.
+            Attendaa turns your event details into a polished, shareable invitation that makes it easy for guests to say yes.
           </p>
           <p className="signup-examples">Perfect for birthdays, baby showers, graduations, dinners, reunions, and every reason to gather.</p>
 
@@ -91,7 +91,7 @@ export default function Login() {
       )}
       <div className={`auth-card ${mode === 'signup' ? 'auth-card-signup' : ''}`}>
         {mode === 'signup' && <p className="auth-brand">Plan · Invite · RSVP · Celebrate</p>}
-        <h1>{mode === 'signin' ? 'Attenda' : 'Create your account'}</h1>
+        <h1>{mode === 'signin' ? 'Attendaa' : 'Create your account'}</h1>
         <p className="auth-sub">{mode === 'signin' ? 'Sign in to your hub' : 'Start making invitations your guests will want to open.'}</p>
 
         {mode === 'signin' && (

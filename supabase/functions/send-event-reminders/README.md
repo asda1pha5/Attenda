@@ -1,4 +1,4 @@
-# Attenda event reminders
+# Attendaa event reminders
 
 This Signature function emails guests who answered **Yes** or **Maybe** at the host's chosen time: **1 day, 3 days, or 1 week** before an event. Each guest receives only one reminder per event.
 
