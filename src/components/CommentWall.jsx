@@ -86,22 +86,18 @@ export default function CommentWall({ eventId, canComment, guestName, guestEmail
     }
     setBusy(true);
     setMessage('');
-    const { data, error } = await supabase
-      .from('comments')
-      .insert({
-        event_id: eventId,
-        guest_name: guestName,
-        guest_email: guestEmail,
-        body: body.trim() || null,
-        image_url: imageUrl || null,
-        gif_url: gifUrl || null,
-      })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('submit_public_comment', {
+      target_event_id: eventId,
+      target_guest_name: guestName,
+      target_guest_email: guestEmail,
+      target_body: body.trim() || null,
+      target_image_url: imageUrl || null,
+      target_gif_url: gifUrl || null,
+    });
     if (error) {
       setMessage(error.message);
     } else {
-      setComments((current) => [data, ...current]);
+      setComments((current) => [data.comment, ...current]);
       setBody('');
       setImageUrl('');
       setGifUrl('');
@@ -109,8 +105,9 @@ export default function CommentWall({ eventId, canComment, guestName, guestEmail
       setMessage('Your comment has been posted.');
       void notifyHost({
         eventId,
-        recordId: data.id,
+        recordId: data.comment.id,
         notificationType: 'comment',
+        notificationToken: data.notification_token,
       });
     }
     setBusy(false);

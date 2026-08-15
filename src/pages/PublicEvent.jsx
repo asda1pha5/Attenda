@@ -68,7 +68,7 @@ export default function PublicEvent() {
     setStatus('sending');
     setErrorMsg('');
 
-    const { data: rsvpId, error } = await supabase.rpc('submit_public_rsvp', {
+    const { data: rsvp, error } = await supabase.rpc('submit_public_rsvp', {
       target_event_id: event.id,
       target_guest_name: name,
       target_guest_email: email,
@@ -83,11 +83,12 @@ export default function PublicEvent() {
       setErrorMsg('Something went wrong - please try again.');
     } else {
       setStatus('done');
-      if (privateMessage.trim()) {
+      if (rsvp?.notification_token) {
         void notifyHost({
           eventId: event.id,
-          recordId: rsvpId,
+          recordId: rsvp.rsvp_id,
           notificationType: 'private_message',
+          notificationToken: rsvp.notification_token,
         });
       }
     }

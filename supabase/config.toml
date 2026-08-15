@@ -1,2 +1,8 @@
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.notify-host]
+verify_jwt = false
+
+[functions.send-event-reminders]
+verify_jwt = false
