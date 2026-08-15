@@ -62,10 +62,19 @@ export default function CommentWall({ eventId, canComment, guestName, guestEmail
     e.preventDefault();
     if (!GIPHY_API_KEY || !gifQuery.trim()) return;
     setBusy(true);
-    const response = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(gifQuery)}&limit=8&rating=g`);
-    const data = await response.json();
-    setGifResults(data.data || []);
-    setBusy(false);
+    setMessage('');
+    try {
+      const response = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(gifQuery)}&limit=8&rating=g`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.meta?.msg || 'Giphy search is unavailable.');
+      setGifResults(data.data || []);
+      if (!data.data?.length) setMessage('No GIFs matched that search. Try another phrase.');
+    } catch {
+      setGifResults([]);
+      setMessage('GIF search is unavailable right now. Please paste a GIF URL instead.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function submitComment(e) {
