@@ -9,6 +9,7 @@ const htmlEntities: Record<string, string> = {
   '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
 };
 const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (character) => htmlEntities[character] || character);
+const escapeAttribute = escapeHtml;
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -71,6 +72,16 @@ Deno.serve(async (request) => {
 
     const label = notification.notification_type === 'comment' ? 'guest-book comment' : 'private message';
     const eventTitle = escapeHtml(event.title || 'your invitation');
+    const appUrl = Deno.env.get('APP_URL')?.replace(/\/$/, '');
+    const hubUrl = appUrl ? `${appUrl}/hub` : '';
+    const actionTitle = notification.notification_type === 'comment' ? 'A guest signed your guest book' : 'You received a private guest message';
+    const bodyCopy = notification.notification_type === 'comment'
+      ? `A guest left a note on ${eventTitle}. Open your hub to read it and keep the conversation going.`
+      : `A guest sent a private message about ${eventTitle}. Open your hub to read it and reply if needed.`;
+    const actionLink = hubUrl
+      ? `<a href="${escapeAttribute(hubUrl)}" style="display:inline-block;padding:14px 20px;border-radius:8px;background:#243328;color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:700;text-decoration:none;">Open your event hub</a>`
+      : '';
+    const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f4f5ef;color:#243328;"><div style="display:none;max-height:0;overflow:hidden;opacity:0;">${actionTitle} for ${eventTitle}</div><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f5ef;"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border:1px solid #dde4d9;border-radius:16px;overflow:hidden;"><tr><td style="padding:28px 32px 18px;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:700;color:#243328;">Attendaa</td></tr><tr><td style="padding:0 32px 28px;"><p style="margin:0 0 10px;font-family:Arial,sans-serif;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#72806c;">Guest activity</p><h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.2;color:#243328;">${actionTitle}</h1><p style="margin:0 0 24px;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:#4c594d;">${bodyCopy}</p>${actionLink}<p style="margin:26px 0 0;font-family:Arial,sans-serif;font-size:12px;line-height:1.5;color:#778177;">You received this email because you host ${eventTitle} on Attendaa.</p></td></tr></table></td></tr></table></body></html>`;
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -82,7 +93,8 @@ Deno.serve(async (request) => {
         from: fromEmail,
         to: [host.email],
         subject: `New ${label} for ${event.title || 'your invitation'}`,
-        html: `<p>Someone left a new ${label} on <strong>${eventTitle}</strong>.</p><p>Open Attendaa to view it.</p>`,
+        html,
+        text: `${actionTitle}\n\n${notification.notification_type === 'comment' ? `A guest left a note on ${event.title || 'your invitation'}.` : `A guest sent a private message about ${event.title || 'your invitation'}.`}${hubUrl ? `\n\nOpen your event hub: ${hubUrl}` : ''}`,
       }),
     });
     if (!emailResponse.ok) throw new Error(`Resend rejected the email: ${await emailResponse.text()}`);

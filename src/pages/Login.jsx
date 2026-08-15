@@ -18,6 +18,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
+  const [resendingConfirmation, setResendingConfirmation] = useState(false);
   usePageTitle(mode === 'signin' ? 'Sign In' : 'Create Account');
 
   // If a session already exists (e.g. we just signed in, or the page
@@ -46,15 +47,32 @@ export default function Login() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: `${window.location.origin}/hub`,
+        },
       });
       if (error) setError(error.message);
       else {
         await trackFunnelEvent('signup_completed');
-        setInfo('Account created. Check your email to confirm, then sign in.');
+        setInfo('Your account is ready. Confirm your email, and we’ll bring you straight to your hub.');
       }
     }
     setBusy(false);
+  }
+
+  async function resendConfirmation() {
+    if (!email) return;
+    setError('');
+    setResendingConfirmation(true);
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/hub` },
+    });
+    if (error) setError(error.message);
+    else setInfo('A fresh confirmation email is on its way.');
+    setResendingConfirmation(false);
   }
 
   return (
@@ -129,6 +147,11 @@ export default function Login() {
           />
           {error && <div className="auth-error">{error}</div>}
           {info && <div className="auth-info">{info}</div>}
+          {mode === 'signup' && info && (
+            <button className="auth-inline-action" type="button" onClick={resendConfirmation} disabled={resendingConfirmation}>
+              {resendingConfirmation ? 'Sending…' : 'Resend confirmation email'}
+            </button>
+          )}
           <button type="submit" disabled={busy}>
             {busy ? 'Please wait…' : mode === 'signin' ? 'Sign In' : 'Sign Up'}
           </button>
