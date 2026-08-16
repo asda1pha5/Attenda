@@ -1,4 +1,4 @@
-const previewPath = '/attenda-envelope-preview.jpg';
+const previewPath = '/attendaa-envelope-preview.jpg';
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>'"]/g, (character) => ({
@@ -14,6 +14,7 @@ function eventMeta(previewUrl: string) {
     <meta property="og:title" content="${safeTitle}" />
     <meta property="og:description" content="${description}" />
     <meta property="og:image" content="${previewUrl}" />
+    <meta property="og:image:secure_url" content="${previewUrl}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="An Attendaa invitation envelope with a checkmark seal" />

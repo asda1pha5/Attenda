@@ -11,6 +11,14 @@ export default function Upgrade() {
   const [searchParams] = useSearchParams();
   const [checkoutError, setCheckoutError] = useState('');
   const [checkingOut, setCheckingOut] = useState(false);
+  const signatureFeatures = [
+    ['Invitation audio', 'Set the mood the second guests open your link.'],
+    ['Private access codes', 'Keep personal events for the people on your list.'],
+    ['Signature invitation looks', 'Choose elevated templates that feel made for the moment.'],
+    ['Guest photo album', 'Let your people add the memories that happen on the day.'],
+    ['Automatic reminders', 'Bring guests back at the right time without chasing replies.'],
+    ['A cleaner final touch', 'Remove Attendaa branding from your published invitation.'],
+  ];
   usePageTitle('Attendaa Signature');
 
   useEffect(() => {
@@ -36,12 +44,13 @@ export default function Upgrade() {
       <section className="upgrade-card">
         <div className="signature-brand-lockup">
           <img src={signatureMark} alt="Attendaa Signature" />
-          <p className="signature-kicker">Attendaa Signature</p>
+          <div><p className="signature-kicker">Attendaa Signature</p><p className="signature-brand-note">For invitations worth keeping</p></div>
         </div>
-        <h1>Make the invitation part of the celebration.</h1>
-        <p className="upgrade-lede">For the events people will remember, Signature adds privacy, richer design, guest photos, reminders, and a clean unbranded experience.</p>
+        <h1>Make the first yes feel like part of the celebration.</h1>
+        <p className="upgrade-lede">Signature turns an RSVP link into a more personal invitation—from the music guests hear when it opens to the details that make it unmistakably yours.</p>
+        <div className="upgrade-promise"><strong>For showers, birthdays, reunions, graduations, and the people you cannot wait to gather.</strong><span>Start free. Upgrade only when the moment calls for more.</span></div>
         <div className="upgrade-feature-list">
-          <span>Premium invitation looks</span><span>Private access codes</span><span>Guest photo album</span><span>Day-before reminders</span><span>Remove Attendaa branding</span>
+          {signatureFeatures.map(([title, description]) => <article key={title}><span aria-hidden="true">✦</span><h2>{title}</h2><p>{description}</p></article>)}
         </div>
         {searchParams.get('checkout') === 'success' && <p className="checkout-message">Thanks—your payment was received. Your Signature access will be active in a moment.</p>}
         {searchParams.get('checkout') === 'cancelled' && <p className="upgrade-note">Checkout was cancelled. Your free account is unchanged.</p>}
@@ -49,7 +58,7 @@ export default function Upgrade() {
           <>
             <button className="primary-btn" type="button" disabled={checkingOut} onClick={startCheckout}>{checkingOut ? 'Opening secure checkout…' : 'Continue to secure checkout'}</button>
             {checkoutError && <p className="auth-error">{checkoutError}</p>}
-            <p className="upgrade-note">Secure payment is handled by Stripe.</p>
+            <p className="upgrade-note">Secure payment is handled by Stripe. Your free invitations stay yours.</p>
           </>
         ) : <Link className="primary-btn" to="/login?mode=signup">Create a free account to upgrade</Link>}
       </section>

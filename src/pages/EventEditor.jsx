@@ -133,6 +133,7 @@ export default function EventEditor() {
     || form.remove_branding
     || form.overlay_enabled
     || form.box_mode === 'overlay'
+    || Boolean(form.audio_url)
   );
   const isRestrictedPrebuiltEvent = isEditing && !isPremium && hasSignatureFeatures;
 
@@ -160,6 +161,11 @@ export default function EventEditor() {
   async function handleAudioUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
+    if (!isPremium) {
+      setError('Invitation audio is included with Attendaa Signature. Upgrade to add music to your invitation.');
+      e.target.value = '';
+      return;
+    }
     setUploading(true);
     setError('');
     try {
@@ -178,6 +184,7 @@ export default function EventEditor() {
   }
 
   function handleRemoveAudio() {
+    if (!isPremium) return;
     updateField('audio_url', '');
   }
 
@@ -282,6 +289,7 @@ export default function EventEditor() {
       reminder_enabled: isPremium ? form.reminder_enabled : (isEditing ? form.reminder_enabled : false),
       reminder_days_before: isPremium ? Number(form.reminder_days_before) || 1 : (isEditing ? Number(form.reminder_days_before) || 1 : 1),
       remove_branding: isPremium ? form.remove_branding : (isEditing ? form.remove_branding : false),
+      audio_url: isPremium ? form.audio_url : (isEditing ? form.audio_url : ''),
       box_mode: isPremium
         ? (form.box_mode === 'overlay' ? 'overlay' : form.box_mode)
         : (isEditing ? form.box_mode : (form.box_mode === 'overlay' ? 'below' : form.box_mode)),
@@ -516,6 +524,19 @@ export default function EventEditor() {
               )}
             </div>
             <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.remove_branding} disabled={!isPremium} onChange={(e) => updateField('remove_branding', e.target.checked)} />Remove Attendaa branding from this invitation</label></div>
+            <div className="signature-option signature-audio-option">
+              <label className="checkbox-label">
+                <input type="file" accept="audio/*" disabled={!isPremium} onChange={handleAudioUpload} />
+                Add invitation audio <span className="signature-option-note">Set the mood when guests open your invitation.</span>
+              </label>
+              <p className="section-label">Audio files must be 8 MB or smaller.</p>
+              {form.audio_url && (
+                <div className="audio-editor-preview">
+                  <audio controls src={form.audio_url}>Your browser does not support audio playback.</audio>
+                  {isPremium && <button type="button" className="tiny-btn danger" onClick={handleRemoveAudio}>Remove audio</button>}
+                </div>
+              )}
+            </div>
           </div>
 
           <details className={`signature-overlay-layout ${isPremium ? '' : 'is-locked'}`}>
@@ -573,22 +594,6 @@ export default function EventEditor() {
             </div>
           </>
         )}
-
-        <section className="form-section audio-section">
-          <h3 className="form-section-title">Invitation Audio</h3>
-          <p className="section-label">Add a short audio file to play when guests open the invitation.</p>
-          <label className="upload-label">
-            Audio file
-            <input type="file" accept="audio/*" onChange={handleAudioUpload} />
-          </label>
-          <p className="section-label">Audio files must be 8 MB or smaller.</p>
-          {form.audio_url && (
-            <div className="audio-editor-preview">
-              <audio controls src={form.audio_url}>Your browser does not support audio playback.</audio>
-              <button type="button" className="tiny-btn danger" onClick={handleRemoveAudio}>Remove audio</button>
-            </div>
-          )}
-        </section>
 
         <label className="rsvp-placement-control">
           RSVP placement
