@@ -40,7 +40,7 @@ export default function Upgrade() {
     if (!user) return;
     setCheckingOut(true);
     if (!selectedEventId) {
-      setCheckoutError('Create a free event first, then choose it for your Signature Pass.');
+      setCheckoutError('Create a free event first, then choose it for Attendaa Signature.');
       setCheckingOut(false);
       return;
     }
@@ -72,9 +72,9 @@ export default function Upgrade() {
         {isPremium ? <Link className="primary-btn" to="/hub">Signature is active — go to my hub</Link> : user ? (
           <>
             <button className="primary-btn" type="button" disabled={checkingOut} onClick={startCheckout}>{checkingOut ? 'Opening secure checkout…' : 'Continue to secure checkout'}</button>
-            {events.length > 0 ? <label className="upgrade-event-picker">Choose the event for this Signature Pass<select value={selectedEventId} onChange={(event) => setSelectedEventId(event.target.value)}>{events.map((event) => <option key={event.id} value={event.id}>{event.title}{event.event_date ? ` — ${new Date(event.event_date).toLocaleDateString()}` : ''}</option>)}</select></label> : <p className="upgrade-note">Create your free event first. Then return here to add Signature to that invitation.</p>}
+            {events.length > 0 ? <label className="upgrade-event-picker">Choose the event for Attendaa Signature<select value={selectedEventId} onChange={(event) => setSelectedEventId(event.target.value)}>{events.map((event) => <option key={event.id} value={event.id}>{event.title}{event.event_date ? ` — ${new Date(event.event_date).toLocaleDateString()}` : ''}</option>)}</select></label> : <p className="upgrade-note">Create your free event first. Then return here to add Signature to that invitation.</p>}
             {checkoutError && <p className="auth-error">{checkoutError}</p>}
-            <p className="upgrade-note">A Signature Pass is a one-time payment for one event—no recurring subscription. Secure payment is handled by Stripe.</p>
+            <p className="upgrade-note">Attendaa Signature is a one-time payment for one event—no recurring subscription. Secure payment is handled by Stripe.</p>
           </>
         ) : <Link className="primary-btn" to="/login?mode=signup">Create a free account to upgrade</Link>}
       </section>

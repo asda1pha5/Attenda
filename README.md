@@ -78,7 +78,7 @@ here automatically.
 
 Before enabling live payments, run [migration_stripe_and_funnel.sql](supabase/migration_stripe_and_funnel.sql) in Supabase's SQL Editor. It adds Stripe billing fields, a secure webhook receipt log, and the funnel tables used by the admin dashboard.
 
-Then create a Stripe **Attendaa Signature Pass** product with a **one-time** price. The Pass unlocks paid features for one chosen event; it is not a subscription. Run [migration_event_signature_pass.sql](supabase/migration_event_signature_pass.sql) before deploying the updated checkout and webhook functions.
+Then create a Stripe **Attendaa Signature** product with a **one-time** price. Signature unlocks paid features for one chosen event; it is not a subscription. Run [migration_event_signature_pass.sql](supabase/migration_event_signature_pass.sql) before deploying the updated checkout and webhook functions.
 
 ```powershell
 supabase functions deploy create-checkout-session

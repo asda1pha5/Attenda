@@ -1,4 +1,4 @@
--- Attendaa Signature Pass: one Stripe payment unlocks Signature for one event.
+-- Attendaa Signature: one Stripe payment unlocks Signature for one event.
 -- Run once in Supabase SQL Editor before deploying the matching Edge Functions.
 
 alter table public.events
