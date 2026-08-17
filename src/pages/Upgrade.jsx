@@ -11,6 +11,8 @@ export default function Upgrade() {
   const [searchParams] = useSearchParams();
   const [checkoutError, setCheckoutError] = useState('');
   const [checkingOut, setCheckingOut] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState('');
   const signatureFeatures = [
     ['Invitation audio', 'Set the mood the second guests open your link.'],
     ['Private access codes', 'Keep personal events for the people on your list.'],
@@ -23,14 +25,27 @@ export default function Upgrade() {
 
   useEffect(() => {
     void trackFunnelEvent('pricing_view', {}, user?.id);
-  }, [user?.id]);
+    if (!user) return;
+    supabase.from('events').select('id,title,event_date,signature_pass_active').eq('customer_id', user.id).order('created_at', { ascending: false })
+      .then(({ data }) => {
+        const available = (data || []).filter((event) => !event.signature_pass_active);
+        setEvents(available);
+        const requestedId = searchParams.get('event');
+        setSelectedEventId(available.some((event) => event.id === requestedId) ? requestedId : available[0]?.id || '');
+      });
+  }, [user?.id, searchParams]);
 
   async function startCheckout() {
     setCheckoutError('');
     if (!user) return;
     setCheckingOut(true);
+    if (!selectedEventId) {
+      setCheckoutError('Create a free event first, then choose it for your Signature Pass.');
+      setCheckingOut(false);
+      return;
+    }
     await trackFunnelEvent('checkout_started', {}, user.id);
-    const { data, error } = await supabase.functions.invoke('create-checkout-session', { body: {} });
+    const { data, error } = await supabase.functions.invoke('create-checkout-session', { body: { eventId: selectedEventId } });
     if (error || !data?.url) {
       setCheckoutError(data?.error || error?.message || 'Checkout is not available yet. Please try again.');
       setCheckingOut(false);
@@ -57,8 +72,9 @@ export default function Upgrade() {
         {isPremium ? <Link className="primary-btn" to="/hub">Signature is active — go to my hub</Link> : user ? (
           <>
             <button className="primary-btn" type="button" disabled={checkingOut} onClick={startCheckout}>{checkingOut ? 'Opening secure checkout…' : 'Continue to secure checkout'}</button>
+            {events.length > 0 ? <label className="upgrade-event-picker">Choose the event for this Signature Pass<select value={selectedEventId} onChange={(event) => setSelectedEventId(event.target.value)}>{events.map((event) => <option key={event.id} value={event.id}>{event.title}{event.event_date ? ` — ${new Date(event.event_date).toLocaleDateString()}` : ''}</option>)}</select></label> : <p className="upgrade-note">Create your free event first. Then return here to add Signature to that invitation.</p>}
             {checkoutError && <p className="auth-error">{checkoutError}</p>}
-            <p className="upgrade-note">Secure payment is handled by Stripe. Your free invitations stay yours.</p>
+            <p className="upgrade-note">A Signature Pass is a one-time payment for one event—no recurring subscription. Secure payment is handled by Stripe.</p>
           </>
         ) : <Link className="primary-btn" to="/login?mode=signup">Create a free account to upgrade</Link>}
       </section>

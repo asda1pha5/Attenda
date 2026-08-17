@@ -78,7 +78,7 @@ here automatically.
 
 Before enabling live payments, run [migration_stripe_and_funnel.sql](supabase/migration_stripe_and_funnel.sql) in Supabase's SQL Editor. It adds Stripe billing fields, a secure webhook receipt log, and the funnel tables used by the admin dashboard.
 
-Then create a Stripe **Signature** product and price. The default checkout is recurring; the price must be recurring too. Deploy the two Supabase functions and add their secrets:
+Then create a Stripe **Attendaa Signature Pass** product with a **one-time** price. The Pass unlocks paid features for one chosen event; it is not a subscription. Run [migration_event_signature_pass.sql](supabase/migration_event_signature_pass.sql) before deploying the updated checkout and webhook functions.
 
 ```powershell
 supabase functions deploy create-checkout-session
@@ -86,7 +86,7 @@ supabase functions deploy stripe-webhook --no-verify-jwt
 supabase secrets set STRIPE_SECRET_KEY="sk_live_or_test_..." STRIPE_WEBHOOK_SIGNING_SECRET="whsec_..." STRIPE_SIGNATURE_PRICE_ID="price_..." APP_URL="https://your-attendaa-domain.com"
 ```
 
-In Stripe, create a webhook endpoint at `https://YOUR_PROJECT_REF.supabase.co/functions/v1/stripe-webhook` for `checkout.session.completed`, `customer.subscription.updated`, and `customer.subscription.deleted`. See [the Stripe webhook setup notes](supabase/functions/stripe-webhook/README.md) for the one-time-payment option.
+In Stripe, create a webhook endpoint at `https://YOUR_PROJECT_REF.supabase.co/functions/v1/stripe-webhook` for `checkout.session.completed`. Keep the subscription events too only if you have existing recurring subscribers; the webhook preserves their access during the transition.
 
 ## Funnel and SEO
 

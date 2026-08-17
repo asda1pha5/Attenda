@@ -20,6 +20,11 @@ Deno.serve(async (request) => {
     const admin = createClient(supabaseUrl, serviceRoleKey);
     const { data: { user }, error: userError } = await admin.auth.getUser(token);
     if (userError || !user) return json({ error: 'Your session has expired. Please sign in again.' }, 401);
+    const { eventId } = await request.json();
+    if (!eventId || typeof eventId !== 'string') return json({ error: 'Choose the event you want to upgrade.' }, 400);
+    const { data: event, error: eventError } = await admin.from('events').select('id,customer_id,signature_pass_active').eq('id', eventId).maybeSingle();
+    if (eventError || !event || event.customer_id !== user.id) return json({ error: 'That event could not be upgraded.' }, 404);
+    if (event.signature_pass_active) return json({ error: 'Signature is already active for this event.' }, 409);
     const { data: profile } = await admin.from('profiles').select('stripe_customer_id').eq('id', user.id).maybeSingle();
 
     const priceId = Deno.env.get('STRIPE_SIGNATURE_PRICE_ID');
@@ -28,17 +33,16 @@ Deno.serve(async (request) => {
     if (!priceId || !stripeKey || !appUrl) return json({ error: 'Checkout is not configured yet.' }, 503);
 
     const stripe = new Stripe(stripeKey);
-    const billingMode = Deno.env.get('STRIPE_SIGNATURE_BILLING_MODE') === 'payment' ? 'payment' : 'subscription';
-    const metadata = { user_id: user.id, plan: 'signature' };
+    const billingMode = 'payment';
+    const metadata = { user_id: user.id, event_id: event.id, plan: 'signature_pass' };
     const session = await stripe.checkout.sessions.create({
       mode: billingMode,
       line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: user.id,
       ...(profile?.stripe_customer_id ? { customer: profile.stripe_customer_id } : { customer_email: user.email || undefined }),
       metadata,
-      ...(billingMode === 'subscription'
-        ? { subscription_data: { metadata } }
-        : { customer_creation: 'always', payment_intent_data: { metadata } }),
+      customer_creation: 'always',
+      payment_intent_data: { metadata },
       success_url: `${appUrl}/upgrade?checkout=success`,
       cancel_url: `${appUrl}/upgrade?checkout=cancelled`,
     });

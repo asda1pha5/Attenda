@@ -135,7 +135,8 @@ export default function EventEditor() {
     || form.box_mode === 'overlay'
     || Boolean(form.audio_url)
   );
-  const isRestrictedPrebuiltEvent = isEditing && !isPremium && hasSignatureFeatures;
+  const hasSignatureAccess = isPremium || Boolean(form.signature_pass_active);
+  const isRestrictedPrebuiltEvent = isEditing && !hasSignatureAccess && hasSignatureFeatures;
 
   async function handleImageUpload(e) {
     const file = e.target.files[0];
@@ -161,7 +162,7 @@ export default function EventEditor() {
   async function handleAudioUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
-    if (!isPremium) {
+    if (!hasSignatureAccess) {
       setError('Invitation audio is included with Attendaa Signature. Upgrade to add music to your invitation.');
       e.target.value = '';
       return;
@@ -184,7 +185,7 @@ export default function EventEditor() {
   }
 
   function handleRemoveAudio() {
-    if (!isPremium) return;
+    if (!hasSignatureAccess) return;
     updateField('audio_url', '');
   }
 
@@ -283,17 +284,17 @@ export default function EventEditor() {
       event_end_time: endTime,
       // A Free owner can update normal invitation details without stripping
       // Signature settings that an admin prebuilt for them.
-      template_id: isPremium ? form.template_id : (isEditing ? form.template_id : 'classic'),
-      password_protected: isPremium ? form.password_protected : (isEditing ? form.password_protected : false),
-      photo_album_enabled: isPremium ? form.photo_album_enabled : (isEditing ? form.photo_album_enabled : false),
-      reminder_enabled: isPremium ? form.reminder_enabled : (isEditing ? form.reminder_enabled : false),
-      reminder_days_before: isPremium ? Number(form.reminder_days_before) || 1 : (isEditing ? Number(form.reminder_days_before) || 1 : 1),
-      remove_branding: isPremium ? form.remove_branding : (isEditing ? form.remove_branding : false),
-      audio_url: isPremium ? form.audio_url : (isEditing ? form.audio_url : ''),
-      box_mode: isPremium
+      template_id: hasSignatureAccess ? form.template_id : (isEditing ? form.template_id : 'classic'),
+      password_protected: hasSignatureAccess ? form.password_protected : (isEditing ? form.password_protected : false),
+      photo_album_enabled: hasSignatureAccess ? form.photo_album_enabled : (isEditing ? form.photo_album_enabled : false),
+      reminder_enabled: hasSignatureAccess ? form.reminder_enabled : (isEditing ? form.reminder_enabled : false),
+      reminder_days_before: hasSignatureAccess ? Number(form.reminder_days_before) || 1 : (isEditing ? Number(form.reminder_days_before) || 1 : 1),
+      remove_branding: hasSignatureAccess ? form.remove_branding : (isEditing ? form.remove_branding : false),
+      audio_url: hasSignatureAccess ? form.audio_url : (isEditing ? form.audio_url : ''),
+      box_mode: hasSignatureAccess
         ? (form.box_mode === 'overlay' ? 'overlay' : form.box_mode)
         : (isEditing ? form.box_mode : (form.box_mode === 'overlay' ? 'below' : form.box_mode)),
-      overlay_enabled: isPremium ? form.box_mode === 'overlay' : (isEditing ? form.overlay_enabled : false),
+      overlay_enabled: hasSignatureAccess ? form.box_mode === 'overlay' : (isEditing ? form.overlay_enabled : false),
     };
     delete payload.id;
     delete payload.created_at;
@@ -318,7 +319,7 @@ export default function EventEditor() {
 
     const eventId = result.data.id;
     if (!isEditing) void trackFunnelEvent('event_created', {}, user.id);
-    if (isPremium && (form.event_password.trim() || !form.password_protected)) {
+    if (hasSignatureAccess && (form.event_password.trim() || !form.password_protected)) {
       const { error: passwordError } = await supabase.rpc('set_event_password', {
         target_event_id: eventId,
         new_password: form.password_protected ? form.event_password.trim() : null,
@@ -476,15 +477,15 @@ export default function EventEditor() {
               <h3 className="form-section-title">Make this invitation feel unforgettable</h3>
               <p className="section-label">Premium tools for the moments that deserve more.</p>
             </div>
-            {!isPremium && <Link className="signature-upgrade-link" to="/upgrade">View Signature</Link>}
+            {!hasSignatureAccess && <Link className="signature-upgrade-link" to={isEditing ? `/upgrade?event=${id}` : '/upgrade'}>View Signature</Link>}
           </div>
 
-          {!isPremium && (
+          {!hasSignatureAccess && (
             <p className="signature-locked-message">
               {isRestrictedPrebuiltEvent
                 ? 'This event was prebuilt with paid Attendaa Signature features. Your Free account can edit the standard invitation details, but cannot change its Signature settings.'
                 : 'These tools are included with the paid Attendaa Signature plan. Your account is currently on the Free plan.'}
-              <Link to="/upgrade"> View upgrade options</Link>
+              <Link to={isEditing ? `/upgrade?event=${id}` : '/upgrade'}> View upgrade options</Link>
             </p>
           )}
 
@@ -493,60 +494,60 @@ export default function EventEditor() {
               <button
                 key={template.id}
                 type="button"
-                className={`template-choice template-${template.id} ${form.template_id === template.id ? 'is-selected' : ''} ${template.premium && !isPremium ? 'is-locked' : ''}`}
-                onClick={() => (template.premium && !isPremium ? null : updateField('template_id', template.id))}
+                className={`template-choice template-${template.id} ${form.template_id === template.id ? 'is-selected' : ''} ${template.premium && !hasSignatureAccess ? 'is-locked' : ''}`}
+                onClick={() => (template.premium && !hasSignatureAccess ? null : updateField('template_id', template.id))}
               >
                 <span className="template-preview" aria-hidden="true" />
                 <strong>{template.label}</strong>
-                <small>{template.premium && !isPremium ? 'Paid Signature feature' : template.description}</small>
+                <small>{template.premium && !hasSignatureAccess ? 'Paid Signature feature' : template.description}</small>
               </button>
             ))}
           </div>
 
-          <div className={`signature-options ${isPremium ? '' : 'is-locked'}`}>
+          <div className={`signature-options ${hasSignatureAccess ? '' : 'is-locked'}`}>
             <div className="signature-option signature-password-option">
               <label className="checkbox-label">
-                <input type="checkbox" checked={form.password_protected} disabled={!isPremium} onChange={(e) => updateField('password_protected', e.target.checked)} />
+                <input type="checkbox" checked={form.password_protected} disabled={!hasSignatureAccess} onChange={(e) => updateField('password_protected', e.target.checked)} />
                 Protect this invitation with an access code
               </label>
-              {form.password_protected && isPremium && (
+              {form.password_protected && hasSignatureAccess && (
                 <label className="signature-password-field">
                   Access code
                   <input type="password" placeholder={isEditing ? 'Leave blank to keep the current code' : 'Choose an access code'} value={form.event_password} onChange={(e) => updateField('event_password', e.target.value)} />
                 </label>
               )}
             </div>
-            <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.photo_album_enabled} disabled={!isPremium} onChange={(e) => updateField('photo_album_enabled', e.target.checked)} />Enable the event photo album</label></div>
+            <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.photo_album_enabled} disabled={!hasSignatureAccess} onChange={(e) => updateField('photo_album_enabled', e.target.checked)} />Enable the event photo album</label></div>
             <div className="signature-option signature-reminder-option">
-              <label className="checkbox-label"><input type="checkbox" checked={form.reminder_enabled} disabled={!isPremium} onChange={(e) => updateField('reminder_enabled', e.target.checked)} />Send guests an event reminder</label>
-              {form.reminder_enabled && isPremium && (
+              <label className="checkbox-label"><input type="checkbox" checked={form.reminder_enabled} disabled={!hasSignatureAccess} onChange={(e) => updateField('reminder_enabled', e.target.checked)} />Send guests an event reminder</label>
+              {form.reminder_enabled && hasSignatureAccess && (
                 <label className="reminder-timing-field">Send <select value={form.reminder_days_before || 1} onChange={(e) => updateField('reminder_days_before', Number(e.target.value))}><option value={1}>1 day before</option><option value={3}>3 days before</option><option value={7}>1 week before</option></select></label>
               )}
             </div>
-            <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.remove_branding} disabled={!isPremium} onChange={(e) => updateField('remove_branding', e.target.checked)} />Remove Attendaa branding from this invitation</label></div>
+            <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.remove_branding} disabled={!hasSignatureAccess} onChange={(e) => updateField('remove_branding', e.target.checked)} />Remove Attendaa branding from this invitation</label></div>
             <div className="signature-option signature-audio-option">
               <label className="checkbox-label">
-                <input type="file" accept="audio/*" disabled={!isPremium} onChange={handleAudioUpload} />
+                <input type="file" accept="audio/*" disabled={!hasSignatureAccess} onChange={handleAudioUpload} />
                 Add invitation audio <span className="signature-option-note">Set the mood when guests open your invitation.</span>
               </label>
               <p className="section-label">Audio files must be 8 MB or smaller.</p>
               {form.audio_url && (
                 <div className="audio-editor-preview">
                   <audio controls src={form.audio_url}>Your browser does not support audio playback.</audio>
-                  {isPremium && <button type="button" className="tiny-btn danger" onClick={handleRemoveAudio}>Remove audio</button>}
+                  {hasSignatureAccess && <button type="button" className="tiny-btn danger" onClick={handleRemoveAudio}>Remove audio</button>}
                 </div>
               )}
             </div>
           </div>
 
-          <details className={`signature-overlay-layout ${isPremium ? '' : 'is-locked'}`}>
-            <summary>Advanced layout: place RSVP over the flyer <span>{isPremium ? 'Signature' : 'Paid plan required'}</span></summary>
+          <details className={`signature-overlay-layout ${hasSignatureAccess ? '' : 'is-locked'}`}>
+            <summary>Advanced layout: place RSVP over the flyer <span>{hasSignatureAccess ? 'Signature' : 'Paid plan required'}</span></summary>
             <p>For designs with generous open space. The RSVP form stays within the flyer and scrolls when needed.</p>
             <label className="checkbox-label">
               <input
                 type="checkbox"
                 checked={form.box_mode === 'overlay'}
-                disabled={!isPremium || !form.image_url || !form.show_image}
+                disabled={!hasSignatureAccess || !form.image_url || !form.show_image}
                 onChange={(e) => handleLayoutChange(e.target.checked ? 'overlay' : 'below')}
               />
               Use the advanced flyer overlay
@@ -574,9 +575,9 @@ export default function EventEditor() {
             </label>
             <button type="button" className="tiny-btn danger" onClick={handleRemoveImage}>Remove image</button>
             <p className="section-label">Flyer preview</p>
-            <div className={`flyer-preview ${isPremium && form.box_mode === 'overlay' && form.show_image ? 'overlay-preview' : ''}`} ref={previewRef}>
+            <div className={`flyer-preview ${hasSignatureAccess && form.box_mode === 'overlay' && form.show_image ? 'overlay-preview' : ''}`} ref={previewRef}>
               <img src={form.image_url} alt="Flyer preview" draggable={false} />
-              {isPremium && form.box_mode === 'overlay' && form.show_image && (
+              {hasSignatureAccess && form.box_mode === 'overlay' && form.show_image && (
                 <div
                   className="flyer-preview-box draggable"
                   style={{
@@ -609,7 +610,7 @@ export default function EventEditor() {
           <span>Choose a clean, readable layout for every guest.</span>
         </label>
 
-        {isPremium && form.box_mode === 'overlay' && form.image_url && form.show_image && (
+        {hasSignatureAccess && form.box_mode === 'overlay' && form.image_url && form.show_image && (
           <div className="overlay-editor">
             <p className="section-label">Drag the RSVP box on the flyer to position it.</p>
             <label className="overlay-position-control">

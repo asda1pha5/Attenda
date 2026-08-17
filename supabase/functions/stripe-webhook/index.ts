@@ -40,12 +40,26 @@ Deno.serve(async (request) => {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.client_reference_id || session.metadata?.user_id;
-      if (userId) {
+      const eventId = session.metadata?.event_id;
+      if (userId && eventId && session.mode === 'payment') {
+        const { data: ownedEvent } = await admin.from('events').select('id').eq('id', eventId).eq('customer_id', userId).maybeSingle();
+        if (!ownedEvent) throw new Error('Checkout event does not belong to the purchaser.');
+        await admin.from('events').update({
+          signature_pass_active: true,
+          stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id,
+        }).eq('id', eventId);
+        await admin.from('profiles').update({
+          stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id,
+          subscription_status: 'paid',
+        }).eq('id', userId);
+        await admin.from('funnel_events').insert({ event_name: 'checkout_completed', visitor_id: `stripe-${userId}`, user_id: userId, path: '/upgrade', properties: { source: 'stripe_webhook' } });
+      } else if (userId && session.mode === 'subscription') {
+        // Preserve access for legacy recurring subscribers during the transition.
         await admin.from('profiles').update({
           plan: 'signature',
           stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id,
           stripe_subscription_id: typeof session.subscription === 'string' ? session.subscription : session.subscription?.id,
-          subscription_status: session.mode === 'subscription' ? 'active' : 'paid',
+          subscription_status: 'active',
         }).eq('id', userId);
         await admin.from('funnel_events').insert({ event_name: 'checkout_completed', visitor_id: `stripe-${userId}`, user_id: userId, path: '/upgrade', properties: { source: 'stripe_webhook' } });
       }

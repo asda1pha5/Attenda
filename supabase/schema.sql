@@ -67,6 +67,8 @@ create table public.events (
   reminder_days_before integer not null default 1 check (reminder_days_before in (1, 3, 7)),
   remove_branding boolean not null default false,
   overlay_enabled boolean not null default false,
+  signature_pass_active boolean not null default false,
+  stripe_payment_intent_id text unique,
   is_published boolean not null default true,
   created_at timestamptz not null default now()
 );
