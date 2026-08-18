@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
 import { usePageTitle } from '../lib/usePageTitle';
@@ -7,6 +7,7 @@ import { flyerBackgrounds } from '../lib/flyerBackgrounds';
 import { signatureTemplates } from '../lib/signatureTemplates';
 import { optimizeImageUpload, validateAudioUpload } from '../lib/mediaUpload';
 import { trackFunnelEvent } from '../lib/funnelAnalytics';
+import { getBabyShowerStyle } from '../lib/eventStylePresets';
 
 const emptyEvent = {
   title: '',
@@ -76,6 +77,7 @@ function normalizeTime(value) {
 export default function EventEditor() {
   const { user, isAdmin, isPremium } = useAuth();
   const { id } = useParams();
+  const location = useLocation();
   const isEditing = Boolean(id);
   const navigate = useNavigate();
 
@@ -93,6 +95,19 @@ export default function EventEditor() {
   useEffect(() => {
     if (isEditing) loadEvent();
   }, [id]);
+
+  useEffect(() => {
+    if (isEditing) return;
+    const style = getBabyShowerStyle(new URLSearchParams(location.search).get('style'));
+    if (!style) return;
+    setForm((current) => ({
+      ...current,
+      flyer_background: style.flyer_background,
+      accent_color: style.accent,
+      rsvp_title: 'Please RSVP',
+      rsvp_subtitle: style.detail,
+    }));
+  }, [isEditing, location.search]);
 
   useEffect(() => {
     if (isAdmin) loadCustomers();

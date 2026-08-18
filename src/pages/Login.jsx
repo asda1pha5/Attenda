@@ -11,6 +11,8 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading } = useAuth();
+  const requestedNext = new URLSearchParams(location.search).get('next');
+  const nextPath = requestedNext?.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '/hub';
   const [mode, setMode] = useState(() => new URLSearchParams(location.search).get('mode') === 'signin' ? 'signin' : 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,8 +27,8 @@ export default function Login() {
   // If a session already exists (e.g. we just signed in, or the page
   // was reloaded while logged in), leave the login page automatically.
   useEffect(() => {
-    if (!loading && user && mode !== 'reset') navigate('/hub', { replace: true });
-  }, [user, loading, navigate, mode]);
+    if (!loading && user && mode !== 'reset') navigate(nextPath, { replace: true });
+  }, [user, loading, navigate, mode, nextPath]);
 
   useEffect(() => {
     if (new URLSearchParams(location.search).get('mode') === 'signin') setMode('signin');
@@ -65,14 +67,14 @@ export default function Login() {
     } else if (mode === 'signin') {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
-      else navigate('/hub', { replace: true });
+      else navigate(nextPath, { replace: true });
     } else {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: { full_name: fullName },
-          emailRedirectTo: `${window.location.origin}/hub`,
+          emailRedirectTo: `${window.location.origin}${nextPath}`,
         },
       });
       if (error) setError(error.message);
