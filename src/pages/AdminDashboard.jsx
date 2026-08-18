@@ -15,6 +15,9 @@ export default function AdminDashboard() {
   const [openEventId, setOpenEventId] = useState(null);
   const [filterCustomer, setFilterCustomer] = useState('all');
   const [customerSearch, setCustomerSearch] = useState('');
+  const [retentionDays, setRetentionDays] = useState(90);
+  const [savingRetention, setSavingRetention] = useState(false);
+  const [retentionError, setRetentionError] = useState('');
 
   useEffect(() => {
     loadAll();
@@ -22,13 +25,45 @@ export default function AdminDashboard() {
 
   async function loadAll() {
     setLoading(true);
-    const [eventsRes, profilesRes] = await Promise.all([
+    const [eventsRes, profilesRes, settingsRes] = await Promise.all([
       supabase.from('events').select('*').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+      supabase.from('app_settings').select('value').eq('key', 'event_retention_days').maybeSingle(),
     ]);
     setEvents(eventsRes.data || []);
     setCustomers(profilesRes.data || []);
+    setRetentionDays(Number(settingsRes.data?.value?.days) || 90);
     setLoading(false);
+  }
+
+  async function saveRetentionDays() {
+    const days = Number(retentionDays);
+    if (!Number.isInteger(days) || days < 1 || days > 3650) {
+      setRetentionError('Choose a whole number between 1 and 3,650 days.');
+      return;
+    }
+    setSavingRetention(true);
+    setRetentionError('');
+    const { error } = await supabase.from('app_settings').upsert({ key: 'event_retention_days', value: { days }, updated_at: new Date().toISOString() });
+    if (error) setRetentionError(error.message);
+    setSavingRetention(false);
+  }
+
+  async function toggleRetentionExempt(event) {
+    const { error } = await supabase.from('events').update({ retention_exempt: !event.retention_exempt }).eq('id', event.id);
+    if (error) {
+      setRetentionError(error.message);
+      return;
+    }
+    setEvents((current) => current.map((item) => item.id === event.id ? { ...item, retention_exempt: !event.retention_exempt } : item));
+  }
+
+  function expirationLabel(event) {
+    if (!event.event_date) return 'No event date — no automatic expiration';
+    if (event.retention_exempt) return 'Kept live indefinitely by admin';
+    const expires = new Date(`${event.event_date}T12:00:00`);
+    expires.setDate(expires.getDate() + Number(retentionDays || 90));
+    return `Closes ${expires.toLocaleDateString()} (${retentionDays} days after event)`;
   }
 
   async function handleSignOut() {
@@ -99,6 +134,13 @@ export default function AdminDashboard() {
         </label>
       </div>
 
+      <section className="admin-retention-controls">
+        <div><p className="signature-kicker">EVENT RETENTION</p><h2>Keep published events live for</h2><p>After an event date passes, its public RSVP page closes automatically. Events with no date remain live until you change them.</p></div>
+        <label><input type="number" min="1" max="3650" value={retentionDays} onChange={(e) => setRetentionDays(e.target.value)} /> days after the event</label>
+        <button className="secondary-btn" type="button" onClick={saveRetentionDays} disabled={savingRetention}>{savingRetention ? 'Saving…' : 'Save policy'}</button>
+        {retentionError && <p className="auth-error">{retentionError}</p>}
+      </section>
+
       {loading ? (
         <div className="muted">Loading…</div>
       ) : filteredEvents.length === 0 ? (
@@ -115,6 +157,7 @@ export default function AdminDashboard() {
                   {ev.event_time ? ` · ${ev.event_time}` : ''}
                   {ev.event_end_time ? ` – ${ev.event_end_time}` : ''} · {ev.is_published ? 'Published' : 'Draft'}
                 </p>
+                <p className="event-retention-status">{expirationLabel(ev)}</p>
                 <p className="event-link">
                   <code>/e/{ev.slug}</code>
                   <button
@@ -128,6 +171,7 @@ export default function AdminDashboard() {
               <div className="event-card-actions">
                 <Link to={`/e/${ev.slug}`} target="_blank" className="secondary-btn">View Page</Link>
                 <Link to={`/hub/edit/${ev.id}`} className="secondary-btn">Edit</Link>
+                {ev.event_date && <button className="secondary-btn" onClick={() => toggleRetentionExempt(ev)}>{ev.retention_exempt ? 'Use standard expiration' : 'Keep live indefinitely'}</button>}
                 <button
                   className="secondary-btn"
                   onClick={() => setOpenEventId(openEventId === ev.id ? null : ev.id)}

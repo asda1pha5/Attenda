@@ -423,6 +423,7 @@ body {
   background: rgba(255,255,255,0.95);
   box-shadow: 0 12px 32px rgba(0,0,0,0.18);
 }
+.admin-retention-controls { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: end; gap: 14px; margin: 24px 0; padding: 22px; border: 1px solid #dce5d8; border-radius: 15px; background: #f8faf5; }.admin-retention-controls .signature-kicker { margin: 0 0 5px; }.admin-retention-controls h2 { margin: 0; color: #405341; font-family: Georgia,'Times New Roman',serif; font-size: 23px; }.admin-retention-controls p:not(.signature-kicker) { max-width: 490px; margin: 8px 0 0; color: #6b786b; font-size: 12px; line-height: 1.45; }.admin-retention-controls label { display: grid; gap: 5px; color: #536452; font-size: 12px; font-weight: 700; }.admin-retention-controls input { width: 112px; min-height: 39px; padding: 7px 9px; border: 1px solid #cfd9ca; border-radius: 8px; background: #fff; color: #344535; font: inherit; }.admin-retention-controls .auth-error { grid-column: 1 / -1; margin: 0; }.event-retention-status { margin: 6px 0 0; color: #718070; font-size: 12px; font-weight: 650; }
 .event-audio { width: min(100%, 420px); margin-top: 18px; height: 36px; }
 .comment-wall { width: min(100%, 860px); margin-top: 50px; padding: clamp(22px, 4vw, 38px); border: 1px solid rgba(104,123,104,0.2); border-radius: 20px; background: rgba(255,255,255,0.66); box-shadow: 0 14px 34px rgba(35,50,37,0.08); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: normal; }
 .comment-wall-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
@@ -754,6 +755,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .template-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.signature-options { grid-template-columns: 1fr; }.signature-password-option, .signature-reminder-option { grid-row: auto; }.upgrade-feature-list { grid-template-columns: 1fr; }
   .section-heading-row { align-items: center; }
   .admin-filter, .customer-search { display: flex; flex-direction: column; align-items: stretch; gap: 7px; margin-right: 0; }
+  .admin-retention-controls { grid-template-columns: 1fr; align-items: stretch; }.admin-retention-controls input { width: 100%; }.admin-retention-controls .secondary-btn { justify-content: center; }
   .admin-filter > label { margin: 0 0 12px; }
   .admin-filter select, .customer-search input { width: 100%; min-width: 0; margin-left: 0; box-sizing: border-box; }
   .submissions-toolbar { flex-wrap: wrap; }

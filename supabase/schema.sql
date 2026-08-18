@@ -69,6 +69,7 @@ create table public.events (
   overlay_enabled boolean not null default false,
   signature_pass_active boolean not null default false,
   stripe_payment_intent_id text unique,
+  retention_exempt boolean not null default false,
   is_published boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -269,6 +270,20 @@ returns boolean as $$
   );
 $$ language sql security definer stable;
 
+create table public.app_settings (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.app_settings (key, value)
+values ('event_retention_days', '{"days": 90}'::jsonb)
+on conflict (key) do nothing;
+
+alter table public.app_settings enable row level security;
+create policy "admins can manage app settings" on public.app_settings
+  for all using (public.is_admin()) with check (public.is_admin());
+
 create or replace function public.submit_public_comment(
   target_event_id uuid,
   target_guest_name text,
@@ -344,10 +359,15 @@ $$;
 create or replace function public.get_public_event(target_slug text, provided_password text default null)
 returns jsonb
 language plpgsql security definer set search_path = public as $$
-declare target_event public.events; stored_hash text;
+declare target_event public.events; stored_hash text; retention_days integer := 90;
 begin
   select * into target_event from public.events where slug = target_slug and is_published = true;
   if target_event.id is null then return null; end if;
+  select coalesce((value->>'days')::integer, 90) into retention_days from public.app_settings where key = 'event_retention_days';
+  retention_days := coalesce(retention_days, 90);
+  if target_event.event_date is not null and not target_event.retention_exempt and current_date > target_event.event_date + retention_days then
+    return jsonb_build_object('expired', true, 'title', target_event.title);
+  end if;
   if target_event.password_protected then
     select password_hash into stored_hash from public.event_access where event_id = target_event.id;
     if stored_hash is null or provided_password is null or crypt(provided_password, stored_hash) <> stored_hash then

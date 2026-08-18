@@ -11,6 +11,7 @@ export default function PublicEvent() {
   const { slug } = useParams();
   const [event, setEvent] = useState(null);
   const [notFound, setNotFound] = useState(false);
+  const [expired, setExpired] = useState(false);
   const [locked, setLocked] = useState(false);
   const [accessCode, setAccessCode] = useState('');
   const [accessError, setAccessError] = useState('');
@@ -41,6 +42,11 @@ export default function PublicEvent() {
     if (data.locked) {
       setEvent(data);
       setLocked(true);
+      return;
+    }
+    if (data.expired) {
+      setEvent(data);
+      setExpired(true);
       return;
     }
     setEvent(data);
@@ -96,6 +102,7 @@ export default function PublicEvent() {
 
   if (notFound) return <div className="page-loading">This invitation could not be found.</div>;
   if (!event) return <div className="page-loading">Loading...</div>;
+  if (expired) return <main className="invitation-lock-page"><section className="invitation-lock-card"><p className="signature-kicker">EVENT ARCHIVE</p><h1>This invitation has closed.</h1><p>{event.title ? `${event.title} is no longer accepting RSVPs.` : 'This event is no longer accepting RSVPs.'}</p></section></main>;
   if (locked) return (
     <main className="invitation-lock-page">
       <section className="invitation-lock-card">
