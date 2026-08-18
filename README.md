@@ -99,3 +99,16 @@ The public home page is Attendaa's landing page. It records anonymous, non-PII a
   in `schema.sql` enforces who can read/write what.
 - Guests never sign in; the `rsvps` table has an "anyone can insert"
   policy but no public read/update/delete access.
+
+## One-command Supabase deployment
+
+Use [scripts/deploy-supabase.cmd](scripts/deploy-supabase.cmd) from CMD to apply tracked database migrations, deploy the payment and email functions, and sync the Attendaa Auth email templates.
+
+Create a Supabase personal access token once, then set it only for the current CMD window:
+
+```cmd
+set SUPABASE_ACCESS_TOKEN=your_personal_access_token
+scripts\deploy-supabase.cmd
+```
+
+The token is not stored in the repository. The script defaults to Attendaa's project; use `set SUPABASE_PROJECT_REF=your_project_ref` before the command only when deploying elsewhere.
