@@ -6,10 +6,13 @@ export default async (request: Request) => {
   let html = await appResponse.text();
   const metadata = `<title>Baby Shower RSVP Website | Attendaa</title><meta name="description" content="Create a beautiful baby shower RSVP website. Share every detail, collect responses, add your registry, and keep the celebration together." /><link rel="canonical" href="${url.origin}/baby-shower-rsvp" /><meta property="og:title" content="Baby Shower RSVP Website | Attendaa" /><meta property="og:description" content="Create one lovely RSVP link for the shower—easy to text, simple for guests, and warm from the first open." />`;
   const rootStart = html.indexOf('<div id="root">');
-  const scriptStart = html.indexOf('<script type="module"', rootStart);
-  if (rootStart !== -1 && scriptStart !== -1) html = `${html.slice(0, rootStart)}<div id="root">${pageContent}</div>\n  ${html.slice(scriptStart)}`;
+  const bodyEnd = html.lastIndexOf('</body>');
+  if (rootStart !== -1 && bodyEnd !== -1) html = `${html.slice(0, rootStart)}<div id="root">${pageContent.replace('A beautiful way to gather before baby arrives.', 'The RSVP page for your baby shower.')}</div>\n${html.slice(bodyEnd)}`;
   html = html.replace(/<title>.*?<\/title>/, '<title>Baby Shower RSVP Website | Attendaa</title>')
     .replace(/\s*<meta name="description"[^>]*>/, '')
+    .replace(/\s*<link rel="canonical"[^>]*>/, '')
+    .replace(/\s*<meta property="og:title"[^>]*>/, '')
+    .replace(/\s*<meta property="og:description"[^>]*>/, '')
     .replace('</head>', `${metadata}\n</head>`);
   return new Response(html, appResponse);
 };

@@ -20,7 +20,7 @@ export default function BabyShowerLanding() {
     <section className="milestone-hero">
       <div className="milestone-copy">
         <p className="landing-eyebrow">BABY SHOWER RSVP WEBSITE</p>
-        <h1>A beautiful way to gather before baby arrives.</h1>
+        <h1>The RSVP page for your baby shower.</h1>
         <p>Create one lovely RSVP link for the shower—easy to text, simple for guests, and warm from the very first open.</p>
         <div className="milestone-actions"><Link className="primary-btn landing-primary" to={startLink('garden-welcome')}>Create your free baby shower RSVP</Link><a className="landing-text-link" href="#styles">See invitation styles</a></div>
         <span>Free to start. No card required.</span>
