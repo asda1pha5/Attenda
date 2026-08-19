@@ -2,7 +2,7 @@
 
 ## First Pinterest Pin
 
-**Image:** `public/pinterest-baby-shower-rsvp.png`
+**Image:** `public/pinterest-baby-shower-rsvp.png` (finished 1024×1536 Pin)
 
 Add this text in Canva over the open upper portion of the image:
 
@@ -51,3 +51,11 @@ Make three Pins from the same page over the next two weeks. Change only the head
 3. `Everything your baby shower guests need in one link`
 
 Each Pin points to the same focused landing page. This lets the landing page, not a DM conversation, do the selling.
+
+## Finished Pinterest creative
+
+All files are ready to upload directly to Pinterest at the recommended 2:3 aspect ratio:
+
+- `public/pinterest-baby-shower-rsvp.png` — lead pin: “A beautiful baby shower RSVP link”
+- `public/pinterest-baby-shower-rsvp-text-reminder.png` — alternate: “Stop chasing baby shower RSVPs by text”
+- `public/pinterest-baby-shower-rsvp-one-link.png` — alternate: “Everything your baby shower guests need in one link”
