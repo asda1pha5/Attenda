@@ -10,6 +10,7 @@ import Upgrade from './pages/Upgrade';
 import Landing from './pages/Landing';
 import FunnelDashboard from './pages/FunnelDashboard';
 import BabyShowerLanding from './pages/BabyShowerLanding';
+import Support from './pages/Support';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/baby-shower-rsvp" element={<BabyShowerLanding />} />
         <Route path="/login" element={<Login />} />
         <Route path="/upgrade" element={<Upgrade />} />
+        <Route path="/help" element={<Support />} />
 
         <Route path="/e/:slug" element={<PublicEvent />} />
 

@@ -18,12 +18,14 @@ export default function TopNav() {
         {!loading && user ? (
           <>
             <Link to="/hub" onClick={closeMenu}>My hub</Link>
+            <Link to="/help" onClick={closeMenu}>Help</Link>
             <Link className="top-nav-cta" to="/hub/new" onClick={closeMenu}>Create event</Link>
           </>
         ) : !loading && (
           <>
             <a href="/#how-it-works" onClick={closeMenu}>How it works</a>
             <Link to="/upgrade" onClick={closeMenu}>Signature</Link>
+            <Link to="/help" onClick={closeMenu}>Help</Link>
             <Link to="/login?mode=signin" onClick={closeMenu}>Sign in</Link>
             <Link className="top-nav-cta" to="/login?mode=signup" onClick={closeMenu}>Create a free account</Link>
           </>

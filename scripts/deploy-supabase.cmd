@@ -10,12 +10,19 @@ if "%SUPABASE_ACCESS_TOKEN%"=="" (
 echo Applying database migrations...
 call npx supabase db push --project-ref %SUPABASE_PROJECT_REF%
 if errorlevel 1 goto :failed
+if not "%SUPPORT_TO_EMAIL%"=="" (
+  echo Setting support inbox...
+  call npx supabase secrets set SUPPORT_TO_EMAIL=%SUPPORT_TO_EMAIL% --project-ref %SUPABASE_PROJECT_REF%
+  if errorlevel 1 goto :failed
+)
 echo Deploying Supabase functions...
 call npx supabase functions deploy create-checkout-session --project-ref %SUPABASE_PROJECT_REF%
 if errorlevel 1 goto :failed
 call npx supabase functions deploy stripe-webhook --no-verify-jwt --project-ref %SUPABASE_PROJECT_REF%
 if errorlevel 1 goto :failed
 call npx supabase functions deploy notify-host --project-ref %SUPABASE_PROJECT_REF%
+if errorlevel 1 goto :failed
+call npx supabase functions deploy contact-support --no-verify-jwt --project-ref %SUPABASE_PROJECT_REF%
 if errorlevel 1 goto :failed
 call npx supabase functions deploy send-event-reminders --project-ref %SUPABASE_PROJECT_REF%
 if errorlevel 1 goto :failed

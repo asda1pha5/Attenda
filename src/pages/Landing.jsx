@@ -93,6 +93,7 @@ export default function Landing() {
       <section className="landing-final-cta landing-reveal">
         <h2>Ready to make your next family milestone feel special?</h2>
         <Link className="primary-btn landing-primary" to={startLink} onClick={() => void trackFunnelEvent('landing_cta_clicked', { placement: 'footer' }, user?.id)}>Create your free event</Link>
+        <Link className="landing-help-link" to="/help">Need a hand? Contact Attendaa support</Link>
       </section>
     </main>
   );
