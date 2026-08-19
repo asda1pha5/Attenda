@@ -1,15 +1,26 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { usePageTitle } from '../lib/usePageTitle';
+import { useAuth } from '../lib/useAuth';
 
 const initialForm = { name: '', email: '', subject: '', message: '', company: '' };
 
 export default function Support() {
+  const { user, profile } = useAuth();
   const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState('');
   const [sending, setSending] = useState(false);
   usePageTitle('Help & support');
+
+  const signedIn = Boolean(user?.email);
+  const accountName = profile?.full_name || user?.user_metadata?.full_name || 'Attendaa member';
+  const accountEmail = user?.email || '';
+
+  useEffect(() => {
+    if (!signedIn) return;
+    setForm((current) => ({ ...current, name: accountName, email: accountEmail }));
+  }, [signedIn, accountName, accountEmail]);
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -24,7 +35,7 @@ export default function Support() {
     if (error) {
       setStatus('We could not send your note just now. Please try again in a moment.');
     } else {
-      setForm(initialForm);
+      setForm(signedIn ? { ...initialForm, name: accountName, email: accountEmail } : initialForm);
       setStatus('Your note is on its way. We’ll reply to the email you shared.');
     }
     setSending(false);
@@ -49,16 +60,20 @@ export default function Support() {
           <p>Tell us what is happening and include a link to your event if it is relevant.</p>
         </div>
         <form onSubmit={submit}>
-          <div className="support-form-grid">
-            <label>
-              Your name
-              <input name="name" value={form.name} onChange={updateField} autoComplete="name" maxLength="100" required />
-            </label>
-            <label>
-              Email address
-              <input name="email" type="email" value={form.email} onChange={updateField} autoComplete="email" maxLength="254" required />
-            </label>
-          </div>
+          {signedIn ? (
+            <p className="support-signed-in-note">Signed in as <strong>{accountName}</strong>. We’ll reply to <strong>{accountEmail}</strong>.</p>
+          ) : (
+            <div className="support-form-grid">
+              <label>
+                Your name
+                <input name="name" value={form.name} onChange={updateField} autoComplete="name" maxLength="100" required />
+              </label>
+              <label>
+                Email address
+                <input name="email" type="email" value={form.email} onChange={updateField} autoComplete="email" maxLength="254" required />
+              </label>
+            </div>
+          )}
           <label>
             What can we help with?
             <input name="subject" value={form.subject} onChange={updateField} placeholder="For example: I need help sharing my invitation" maxLength="160" required />
