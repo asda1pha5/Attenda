@@ -15,6 +15,11 @@ if not "%SUPPORT_TO_EMAIL%"=="" (
   call npx supabase secrets set SUPPORT_TO_EMAIL=%SUPPORT_TO_EMAIL% --project-ref %SUPABASE_PROJECT_REF%
   if errorlevel 1 goto :failed
 )
+if not "%RESEND_INBOUND_WEBHOOK_SECRET%"=="" (
+  echo Setting inbound email webhook secret...
+  call npx supabase secrets set RESEND_INBOUND_WEBHOOK_SECRET=%RESEND_INBOUND_WEBHOOK_SECRET% --project-ref %SUPABASE_PROJECT_REF%
+  if errorlevel 1 goto :failed
+)
 echo Deploying Supabase functions...
 call npx supabase functions deploy create-checkout-session --project-ref %SUPABASE_PROJECT_REF%
 if errorlevel 1 goto :failed
@@ -23,6 +28,8 @@ if errorlevel 1 goto :failed
 call npx supabase functions deploy notify-host --project-ref %SUPABASE_PROJECT_REF%
 if errorlevel 1 goto :failed
 call npx supabase functions deploy contact-support --no-verify-jwt --project-ref %SUPABASE_PROJECT_REF%
+if errorlevel 1 goto :failed
+call npx supabase functions deploy forward-inbound-support --no-verify-jwt --project-ref %SUPABASE_PROJECT_REF%
 if errorlevel 1 goto :failed
 call npx supabase functions deploy send-event-reminders --project-ref %SUPABASE_PROJECT_REF%
 if errorlevel 1 goto :failed
