@@ -15,6 +15,6 @@ The `/help` page sends each message to the address stored in the Supabase `SUPPO
 2. The script safely sets the `SUPPORT_TO_EMAIL` secret, applies the database migration, and deploys the support function along with the other functions.
 3. Visit `https://attendaa.com/help` and send a test message.
 
-## Direct support email later
+## Direct support email
 
-The help form is the live contact channel. If you also want customers to email an address directly, use Resend Inbound on a dedicated subdomain such as `mail.attendaa.com`; it avoids changing the MX records for the main domain. Once it is configured, `support@mail.attendaa.com` can forward into the same inbox.
+Namecheap Email Forwarding is already active for `attendaa.com`. Create `support@attendaa.com` in Namecheap's **Domain → Redirect Email** section and forward it to `attendaa26@gmail.com`. This preserves the current mail routing and gives Gmail the confirmation email it needs to send as Attendaa Support.
