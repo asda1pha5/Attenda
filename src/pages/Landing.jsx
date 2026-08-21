@@ -60,9 +60,9 @@ export default function Landing() {
         <p className="landing-eyebrow">BUILT FOR FAMILY MILESTONES</p>
         <h2>From invite to headcount in three simple steps.</h2>
         <div className="landing-walkthroughs">
-          <article><img src="/marketing/attendaa-live-invitation-story.svg" alt="Real Attendaa Sunday Brunch invitation page" /><div><span>01 · MAKE IT YOURS</span><h3>Start with the details, then choose the feeling.</h3><p>Add your flyer, date, place, and the invitation look that fits your celebration.</p></div></article>
-          <article><img src="/marketing/attendaa-live-rsvp-story.svg" alt="Real Attendaa RSVP page with a Send RSVP callout" /><div><span>02 · SHARE ONE LINK</span><h3>Give guests a page they’ll actually want to open.</h3><p>Text it, add it to an invitation, or share it anywhere your people are gathering.</p></div></article>
-          <article><img src="/marketing/attendaa-live-guestbook-story.svg" alt="Real Attendaa guest book and photo album page section" /><div><span>03 · KEEP THE CELEBRATION CLOSE</span><h3>More than a headcount.</h3><p>Signature can turn the invite into a guest book and photo album guests return to.</p></div></article>
+          <article><img src="/marketing/attendaa-live-invitation-story.png" alt="Real Attendaa Sunday Brunch invitation page" /><div><span>01 · MAKE IT YOURS</span><h3>Start with the details, then choose the feeling.</h3><p>Add your flyer, date, place, and the invitation look that fits your celebration.</p></div></article>
+          <article><img src="/marketing/attendaa-live-rsvp-story.png" alt="Real Attendaa RSVP page with a Send RSVP callout" /><div><span>02 · SHARE ONE LINK</span><h3>Give guests a page they’ll actually want to open.</h3><p>Text it, add it to an invitation, or share it anywhere your people are gathering.</p></div></article>
+          <article><img src="/marketing/attendaa-live-guestbook-story.png" alt="Real Attendaa guest book and photo album page section" /><div><span>03 · KEEP THE CELEBRATION CLOSE</span><h3>More than a headcount.</h3><p>Signature can turn the invite into a guest book and photo album guests return to.</p></div></article>
         </div>
       </section>
 
