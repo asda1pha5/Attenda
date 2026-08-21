@@ -60,9 +60,9 @@ export default function Landing() {
         <p className="landing-eyebrow">BUILT FOR FAMILY MILESTONES</p>
         <h2>From invite to headcount in three simple steps.</h2>
         <div className="landing-walkthroughs">
-          <article><img src="/marketing/attendaa-how-to-create-event.svg" alt="Attendaa event editor showing an invitation style being selected" /><div><span>01 · MAKE IT YOURS</span><h3>Start with the details, then choose the feeling.</h3><p>Add your flyer, date, place, and the invitation look that fits your celebration.</p></div></article>
-          <article><img src="/marketing/attendaa-how-to-rsvp.svg" alt="Attendaa RSVP page showing guests how to confirm attendance" /><div><span>02 · SHARE ONE LINK</span><h3>Give guests a page they’ll actually want to open.</h3><p>Text it, add it to an invitation, or share it anywhere your people are gathering.</p></div></article>
-          <article><img src="/marketing/attendaa-how-to-hub.svg" alt="Attendaa host hub showing event responses and guest totals" /><div><span>03 · KNOW WHO IS COMING</span><h3>Watch your guest list come together.</h3><p>See every RSVP, headcount, and message in one calm, organized hub.</p></div></article>
+          <article><img src="/marketing/attendaa-live-invitation-story.svg" alt="Real Attendaa Sunday Brunch invitation page" /><div><span>01 · MAKE IT YOURS</span><h3>Start with the details, then choose the feeling.</h3><p>Add your flyer, date, place, and the invitation look that fits your celebration.</p></div></article>
+          <article><img src="/marketing/attendaa-live-rsvp-story.svg" alt="Real Attendaa RSVP page with a Send RSVP callout" /><div><span>02 · SHARE ONE LINK</span><h3>Give guests a page they’ll actually want to open.</h3><p>Text it, add it to an invitation, or share it anywhere your people are gathering.</p></div></article>
+          <article><img src="/marketing/attendaa-live-guestbook-story.svg" alt="Real Attendaa guest book and photo album page section" /><div><span>03 · KEEP THE CELEBRATION CLOSE</span><h3>More than a headcount.</h3><p>Signature can turn the invite into a guest book and photo album guests return to.</p></div></article>
         </div>
       </section>
 
