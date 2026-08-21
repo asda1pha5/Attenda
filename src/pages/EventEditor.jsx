@@ -542,9 +542,10 @@ export default function EventEditor() {
             </div>
             <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.remove_branding} disabled={!hasSignatureAccess} onChange={(e) => updateField('remove_branding', e.target.checked)} />Remove Attendaa branding and the promotional link</label></div>
             <div className="signature-option signature-audio-option">
-              <label className="checkbox-label">
-                <input type="file" accept="audio/*" disabled={!hasSignatureAccess} onChange={handleAudioUpload} />
-                Add invitation audio <span className="signature-option-note">Set the mood when guests open your invitation.</span>
+              <p className="signature-audio-heading">Add invitation audio <span className="signature-option-note">Set the mood when guests open your invitation.</span></p>
+              <label className={`file-upload-button ${!hasSignatureAccess || uploading ? 'is-disabled' : ''}`}>
+                <input type="file" accept="audio/*" disabled={!hasSignatureAccess || uploading} onChange={handleAudioUpload} />
+                <span>{uploading ? 'Uploading…' : form.audio_url ? 'Replace audio' : 'Choose audio'}</span>
               </label>
               <p className="section-label">Audio files must be 8 MB or smaller.</p>
               {form.audio_url && (
@@ -572,10 +573,13 @@ export default function EventEditor() {
           </details>
         </section>
 
-        <label className="upload-label">
-          Flyer Image
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
-        </label>
+        <div className="upload-label">
+          <span>Flyer Image</span>
+          <label className={`file-upload-button ${uploading ? 'is-disabled' : ''}`}>
+            <input type="file" accept="image/*" disabled={uploading} onChange={handleImageUpload} />
+            <span>{uploading ? 'Uploading…' : form.image_url ? 'Replace flyer' : 'Choose flyer'}</span>
+          </label>
+        </div>
         <p className="section-label">JPG, PNG, WebP, or GIF. Images are optimized automatically; animated GIFs must be 2 MB or smaller.</p>
         {uploading && <div className="muted">Uploading…</div>}
 

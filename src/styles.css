@@ -245,7 +245,12 @@ body {
   border-radius: 6px;
   font-size: 14px;
 }
-.upload-label { display: block; margin: 10px 0; font-size: 13px; }
+.upload-label { display: grid; justify-items: start; gap: 8px; margin: 10px 0; color: #3f4a3f; font-size: 13px; font-weight: 650; }
+.file-upload-button { position: relative; display: inline-flex !important; flex-direction: row !important; align-items: center; justify-content: center; min-height: 40px; padding: 0 15px; overflow: hidden; border: 1px solid #9aaa93; border-radius: 9px; background: #eef3eb; color: #405640 !important; font-size: 12px !important; font-weight: 750 !important; letter-spacing: .15px; box-shadow: 0 2px 5px rgba(65, 86, 64, .08); cursor: pointer; transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease; }
+.file-upload-button:hover { transform: translateY(-1px); border-color: #6e836b; background: #e2ebdd; box-shadow: 0 6px 13px rgba(65, 86, 64, .14); }
+.file-upload-button:focus-within { outline: 3px solid rgba(95, 113, 96, .24); outline-offset: 3px; }
+.file-upload-button.is-disabled { opacity: .58; cursor: not-allowed; }
+.file-upload-button input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: inherit; }
 .section-label { font-size: 13px; color: #77826f; margin: 16px 0 8px; }
 .checkbox-label {
   display: flex;
@@ -686,7 +691,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .template-choice-note { margin: 10px 0 0; color: #718071; font-size: 11px; line-height: 1.4; }
 .signature-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 10px 22px; margin-top: 14px; }
 .signature-option { min-height: 34px; }.signature-options .checkbox-label { margin: 5px 0; }.signature-options.is-locked { opacity: .58; }
-.signature-audio-option { grid-column: 1 / -1; padding-top: 8px; border-top: 1px solid #e2e8de; }.signature-audio-option input[type="file"] { display: block; max-width: 100%; margin: 8px 0 0 24px; }.signature-option-note { display: block; margin: 4px 0 0 24px; color: #738072; font-size: 11px; font-weight: 500; }.signature-audio-option .section-label { margin: 6px 0 0 24px; }.signature-audio-option .audio-editor-preview { margin: 9px 0 0 24px; }
+.signature-audio-option { grid-column: 1 / -1; padding-top: 8px; border-top: 1px solid #e2e8de; }.signature-audio-heading { margin: 6px 0 0 24px; color: #3f4a3f; font-size: 13px; font-weight: 600; }.signature-audio-option .file-upload-button { margin: 9px 0 0 24px; }.signature-option-note { display: block; margin-top: 4px; color: #738072; font-size: 11px; font-weight: 500; }.signature-audio-option .section-label { margin: 6px 0 0 24px; }.signature-audio-option .audio-editor-preview { margin: 9px 0 0 24px; }
 .signature-password-option, .signature-reminder-option { grid-row: span 2; }
 .signature-password-field, .reminder-timing-field { display: grid; gap: 5px; margin: 10px 0 0 24px; color: #627062; font-size: 11px; font-weight: 700; }
 .signature-password-field input, .reminder-timing-field select { width: min(100%, 320px); min-height: 38px; box-sizing: border-box; }
