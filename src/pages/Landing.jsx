@@ -59,10 +59,10 @@ export default function Landing() {
       <section className="landing-section landing-reveal" id="how-it-works">
         <p className="landing-eyebrow">BUILT FOR FAMILY MILESTONES</p>
         <h2>From invite to headcount in three simple steps.</h2>
-        <div className="landing-steps">
-          <article><span>01</span><i className="landing-step-icon" aria-hidden="true">✦</i><h3>Make it yours</h3><p>Add a flyer, your event details, music, and the RSVP questions that matter.</p></article>
-          <article><span>02</span><i className="landing-step-icon" aria-hidden="true">↗</i><h3>Share one link</h3><p>Text it, add it to an invitation, or post it anywhere your guests will see it.</p></article>
-          <article><span>03</span><i className="landing-step-icon" aria-hidden="true">✓</i><h3>Know who is coming</h3><p>Watch responses arrive in your hub, without chasing down messages.</p></article>
+        <div className="landing-walkthroughs">
+          <article><img src="/marketing/attendaa-how-to-create-event.svg" alt="Attendaa event editor showing an invitation style being selected" /><div><span>01 · MAKE IT YOURS</span><h3>Start with the details, then choose the feeling.</h3><p>Add your flyer, date, place, and the invitation look that fits your celebration.</p></div></article>
+          <article><img src="/marketing/attendaa-how-to-rsvp.svg" alt="Attendaa RSVP page showing guests how to confirm attendance" /><div><span>02 · SHARE ONE LINK</span><h3>Give guests a page they’ll actually want to open.</h3><p>Text it, add it to an invitation, or share it anywhere your people are gathering.</p></div></article>
+          <article><img src="/marketing/attendaa-how-to-hub.svg" alt="Attendaa host hub showing event responses and guest totals" /><div><span>03 · KNOW WHO IS COMING</span><h3>Watch your guest list come together.</h3><p>See every RSVP, headcount, and message in one calm, organized hub.</p></div></article>
         </div>
       </section>
 
