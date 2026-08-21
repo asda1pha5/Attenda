@@ -540,7 +540,7 @@ export default function EventEditor() {
                 <label className="reminder-timing-field">Send <select value={form.reminder_days_before || 1} onChange={(e) => updateField('reminder_days_before', Number(e.target.value))}><option value={1}>1 day before</option><option value={3}>3 days before</option><option value={7}>1 week before</option></select></label>
               )}
             </div>
-            <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.remove_branding} disabled={!hasSignatureAccess} onChange={(e) => updateField('remove_branding', e.target.checked)} />Remove Attendaa branding from this invitation</label></div>
+            <div className="signature-option"><label className="checkbox-label"><input type="checkbox" checked={form.remove_branding} disabled={!hasSignatureAccess} onChange={(e) => updateField('remove_branding', e.target.checked)} />Remove Attendaa branding and the promotional link</label></div>
             <div className="signature-option signature-audio-option">
               <label className="checkbox-label">
                 <input type="file" accept="audio/*" disabled={!hasSignatureAccess} onChange={handleAudioUpload} />

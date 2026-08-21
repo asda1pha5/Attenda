@@ -31,6 +31,11 @@ export default function PublicEvent() {
     loadEvent(sessionStorage.getItem(`attenda-access-${slug}`));
   }, [slug]);
 
+  useEffect(() => {
+    document.body.classList.toggle('public-event-unbranded', Boolean(event?.remove_branding));
+    return () => document.body.classList.remove('public-event-unbranded');
+  }, [event?.remove_branding]);
+
   async function loadEvent(password) {
     const { data, error } = await supabase.rpc('get_public_event', {
       target_slug: slug,

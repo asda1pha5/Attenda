@@ -730,6 +730,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .submit-btn { background: var(--attenda-green); border-radius: 10px; letter-spacing: .6px; }
 .comment-wall { border-color: var(--attenda-border); border-radius: 18px; background: #fff; box-shadow: 0 8px 25px rgba(36, 51, 38, .06); }
 .create-invite-cta { background: #314035; border-color: #314035; }
+/* Signature hosts who remove branding get a completely unbranded guest page. */
+body.public-event-unbranded .top-nav { display: none; }
+body.public-event-unbranded .public-card-wrap { padding-top: clamp(16px, 4vw, 48px); }
 
 /* ---------- Public landing page and growth funnel ---------- */
 .landing-page { overflow: hidden; background: #faf9f5; color: #2e3c30; }
