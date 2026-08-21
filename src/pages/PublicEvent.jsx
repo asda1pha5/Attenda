@@ -6,6 +6,7 @@ import { notifyHost } from '../lib/notifyHost';
 import CommentWall from '../components/CommentWall';
 import EventPhotoAlbum from '../components/EventPhotoAlbum';
 import { getFlyerBackground } from '../lib/flyerBackgrounds';
+import { signatureTemplates } from '../lib/signatureTemplates';
 
 export default function PublicEvent() {
   const { slug } = useParams();
@@ -119,6 +120,7 @@ export default function PublicEvent() {
   );
 
   const background = getFlyerBackground(event.flyer_background);
+  const selectedTemplate = signatureTemplates.find((template) => template.id === event.template_id) || signatureTemplates[0];
   const theme = '#63765f';
   const accent = '#a87a45';
   const hasImage = Boolean(event.image_url) && event.show_image !== false;
@@ -139,6 +141,7 @@ export default function PublicEvent() {
 
   const rsvpBox = (extraClass = '', extraStyle = {}) => (
     <div className={`rsvp-box ${extraClass}`} style={{ ...cssVars, ...extraStyle }}>
+      {selectedTemplate.premium && <p className="template-edition">Attendaa Signature <span>·</span> {selectedTemplate.label}</p>}
       {event.registry_position === 'top' && registryButton}
       <h2>{event.rsvp_title || 'Please RSVP'}</h2>
       {event.rsvp_subtitle && <p className="rsvp-subtitle">{event.rsvp_subtitle}</p>}

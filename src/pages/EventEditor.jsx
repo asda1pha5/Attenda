@@ -518,6 +518,7 @@ export default function EventEditor() {
               </button>
             ))}
           </div>
+          <p className="template-choice-note">Each look restyles the whole RSVP card your guests see—not just the border.</p>
 
           <div className={`signature-options ${hasSignatureAccess ? '' : 'is-locked'}`}>
             <div className="signature-option signature-password-option">
