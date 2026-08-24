@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
+import QRCode from 'qrcode';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/useAuth';
 import { usePageTitle } from '../lib/usePageTitle';
@@ -36,6 +37,7 @@ const emptyEvent = {
   reminder_enabled: false,
   reminder_days_before: 1,
   remove_branding: false,
+  qr_code_enabled: false,
   rsvp_title: 'Please RSVP',
   rsvp_subtitle: '',
   show_event_details: true,
@@ -87,6 +89,8 @@ export default function EventEditor() {
   const [error, setError] = useState('');
   const [hadExistingPassword, setHadExistingPassword] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [savedQrConfig, setSavedQrConfig] = useState(null);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const previewRef = useRef(null);
   const dragState = useRef(null);
 
@@ -133,11 +137,50 @@ export default function EventEditor() {
       }
       setForm(savedEvent);
       setHadExistingPassword(Boolean(data.password_protected));
+      setSavedQrConfig({ slug: data.slug, isPublished: Boolean(data.is_published), enabled: Boolean(data.qr_code_enabled) });
     }
   }
 
   function updateField(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  const savedQrUrl = savedQrConfig?.enabled && savedQrConfig?.isPublished && savedQrConfig?.slug
+    ? `${window.location.origin}/e/${savedQrConfig.slug}`
+    : '';
+  const qrChangesNeedSaving = isEditing && savedQrConfig && (
+    form.qr_code_enabled !== savedQrConfig.enabled
+    || form.is_published !== savedQrConfig.isPublished
+    || form.slug !== savedQrConfig.slug
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!savedQrUrl) {
+      setQrCodeDataUrl('');
+      return undefined;
+    }
+    QRCode.toDataURL(savedQrUrl, {
+      width: 360,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#64795f', light: '#fffdf8' },
+    }).then((dataUrl) => {
+      if (!cancelled) setQrCodeDataUrl(dataUrl);
+    }).catch(() => {
+      if (!cancelled) setQrCodeDataUrl('');
+    });
+    return () => { cancelled = true; };
+  }, [savedQrUrl]);
+
+  function downloadQrCode() {
+    if (!qrCodeDataUrl || !savedQrConfig?.slug) return;
+    const link = document.createElement('a');
+    link.href = qrCodeDataUrl;
+    link.download = `attendaa-${savedQrConfig.slug}-rsvp-qr.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   }
 
   const hasSignatureFeatures = Boolean(
@@ -333,6 +376,7 @@ export default function EventEditor() {
     }
 
     const eventId = result.data.id;
+    setSavedQrConfig({ slug, isPublished: Boolean(payload.is_published), enabled: Boolean(payload.qr_code_enabled) });
     if (!isEditing) void trackFunnelEvent('event_created', {}, user.id);
     if (hasSignatureAccess && (form.event_password.trim() || !form.password_protected)) {
       const { error: passwordError } = await supabase.rpc('set_event_password', {
@@ -711,6 +755,32 @@ export default function EventEditor() {
           />
           Published (guests can view and RSVP)
         </label>
+
+        <section className="qr-code-panel" aria-labelledby="qr-code-title">
+          <div>
+            <p className="signature-kicker">FREE QR CODE</p>
+            <h2 id="qr-code-title">Give guests a quick way in.</h2>
+            <p>Enable a sage Attendaa QR code for printed invitations, signs, or table cards. It links straight to this RSVP page.</p>
+          </div>
+          <label className="checkbox-label qr-code-toggle">
+            <input type="checkbox" checked={form.qr_code_enabled} onChange={(e) => updateField('qr_code_enabled', e.target.checked)} />
+            Enable a QR code for this event
+          </label>
+          {!isEditing && <p className="qr-code-status">Save this event first. A QR code is available only after the event is published.</p>}
+          {isEditing && !form.is_published && <p className="qr-code-status">Publish this event before its QR code can work. Guests cannot open a draft invitation.</p>}
+          {isEditing && form.is_published && !form.qr_code_enabled && <p className="qr-code-status">Turn this on and save the event to create its QR code.</p>}
+          {qrChangesNeedSaving && <p className="qr-code-status">Save your changes before downloading or printing this QR code.</p>}
+          {savedQrUrl && !qrChangesNeedSaving && (
+            <div className="qr-code-ready">
+              {qrCodeDataUrl ? <img src={qrCodeDataUrl} alt={`QR code linking to ${savedQrUrl}`} /> : <span className="qr-code-loading">Creating your QR code…</span>}
+              <div>
+                <strong>Ready to print</strong>
+                <span>Links to /e/{savedQrConfig.slug}</span>
+                <button type="button" className="secondary-btn" onClick={downloadQrCode} disabled={!qrCodeDataUrl}>Download QR code</button>
+              </div>
+            </div>
+          )}
+        </section>
 
         {error && <div className="auth-error">{error}</div>}
 
