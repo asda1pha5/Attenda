@@ -72,7 +72,8 @@ create table public.events (
   stripe_payment_intent_id text unique,
   retention_exempt boolean not null default false,
   is_published boolean not null default true,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 -- ---------- RSVPS ----------

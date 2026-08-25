@@ -137,7 +137,13 @@ export default function EventEditor() {
       }
       setForm(savedEvent);
       setHadExistingPassword(Boolean(data.password_protected));
-      setSavedQrConfig({ slug: data.slug, isPublished: Boolean(data.is_published), enabled: Boolean(data.qr_code_enabled) });
+      setSavedQrConfig({
+        slug: data.slug,
+        title: data.title,
+        isPublished: Boolean(data.is_published),
+        enabled: Boolean(data.qr_code_enabled),
+        updatedAt: data.updated_at,
+      });
     }
   }
 
@@ -181,6 +187,13 @@ export default function EventEditor() {
     document.body.appendChild(link);
     link.click();
     link.remove();
+  }
+
+  function savedQrStatus() {
+    if (!savedQrConfig?.updatedAt) return 'Saved and ready to print.';
+    const savedAt = new Date(savedQrConfig.updatedAt);
+    if (Number.isNaN(savedAt.getTime())) return 'Saved and ready to print.';
+    return `Last saved ${new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(savedAt)}.`;
   }
 
   const hasSignatureFeatures = Boolean(
@@ -360,9 +373,9 @@ export default function EventEditor() {
 
     let result;
     if (isEditing) {
-      result = await supabase.from('events').update(payload).eq('id', id).select('id').single();
+      result = await supabase.from('events').update(payload).eq('id', id).select('id, updated_at').single();
     } else {
-      result = await supabase.from('events').insert(payload).select('id').single();
+      result = await supabase.from('events').insert(payload).select('id, updated_at').single();
     }
 
     if (result.error) {
@@ -376,7 +389,13 @@ export default function EventEditor() {
     }
 
     const eventId = result.data.id;
-    setSavedQrConfig({ slug, isPublished: Boolean(payload.is_published), enabled: Boolean(payload.qr_code_enabled) });
+    setSavedQrConfig({
+      slug,
+      title: payload.title,
+      isPublished: Boolean(payload.is_published),
+      enabled: Boolean(payload.qr_code_enabled),
+      updatedAt: result.data.updated_at,
+    });
     if (!isEditing) void trackFunnelEvent('event_created', {}, user.id);
     if (hasSignatureAccess && (form.event_password.trim() || !form.password_protected)) {
       const { error: passwordError } = await supabase.rpc('set_event_password', {
@@ -772,10 +791,15 @@ export default function EventEditor() {
           {qrChangesNeedSaving && <p className="qr-code-status">Save your changes before downloading or printing this QR code.</p>}
           {savedQrUrl && !qrChangesNeedSaving && (
             <div className="qr-code-ready">
-              {qrCodeDataUrl ? <img src={qrCodeDataUrl} alt={`QR code linking to ${savedQrUrl}`} /> : <span className="qr-code-loading">Creating your QR code…</span>}
-              <div>
+              <div className="qr-code-preview">
+                <p>{savedQrConfig.title || 'Your event'} RSVP</p>
+                {qrCodeDataUrl ? <img src={qrCodeDataUrl} alt={`QR code linking to ${savedQrUrl}`} /> : <span className="qr-code-loading">Creating your QR code…</span>}
+              </div>
+              <div className="qr-code-actions">
                 <strong>Ready to print</strong>
                 <span>Links to /e/{savedQrConfig.slug}</span>
+                <span className="qr-code-print-note">Print at least 1 inch wide for easy scanning.</span>
+                <span className="qr-code-saved-status">{savedQrStatus()}</span>
                 <button type="button" className="secondary-btn" onClick={downloadQrCode} disabled={!qrCodeDataUrl}>Download QR code</button>
               </div>
             </div>
