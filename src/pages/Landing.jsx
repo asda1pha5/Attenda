@@ -69,8 +69,9 @@ export default function Landing() {
       <section className="landing-signature landing-reveal" id="signature">
         <div>
           <p className="landing-eyebrow">ATTENDAA SIGNATURE</p>
-          <h2>For the family moments you want to make unforgettable.</h2>
-          <p>Unlock invitation audio, private access codes, elevated looks, guest photo albums, reminders, and an unbranded experience for one special event.</p>
+          <h2>For the invitation they will remember, not just the RSVP.</h2>
+          <p>Make it feel custom, keep the details for your people, and give guests a place to return to after the day—with elevated looks, privacy, reminders, music, photos, and more.</p>
+          <p className="landing-signature-price">$19 one time for one event · no automatic renewal</p>
         </div>
         <Link className="secondary-btn" to="/upgrade" onClick={() => void trackFunnelEvent('signature_interest_clicked', { placement: 'landing' }, user?.id)}>Explore Signature</Link>
       </section>

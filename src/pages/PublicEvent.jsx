@@ -185,6 +185,7 @@ export default function PublicEvent() {
             />
             <small>{privateMessage.length}/250</small>
           </label>
+          <p className="rsvp-privacy-note">Your RSVP details are visible only to the event host.</p>
           <button type="submit" className="submit-btn" disabled={status === 'sending'}>
             {status === 'sending' ? 'Sending...' : 'Send RSVP'}
           </button>

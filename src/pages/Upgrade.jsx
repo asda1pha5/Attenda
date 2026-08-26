@@ -13,13 +13,10 @@ export default function Upgrade() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [events, setEvents] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState('');
-  const signatureFeatures = [
-    ['Invitation audio', 'Set the mood the second guests open your link.'],
-    ['Private access codes', 'Keep personal events for the people on your list.'],
-    ['Signature invitation looks', 'Choose elevated templates that feel made for the moment.'],
-    ['Guest photo album', 'Let your people add the memories that happen on the day.'],
-    ['Automatic reminders', 'Bring guests back at the right time without chasing replies.'],
-    ['A cleaner final touch', 'Remove Attendaa branding from your published invitation.'],
+  const signatureOutcomes = [
+    ['MAKE IT FEEL CUSTOM', 'More than a link in the group chat.', 'Choose an elevated invitation look and add audio that sets the mood from the first open.'],
+    ['KEEP IT FOR YOUR PEOPLE', 'Personal details stay personal.', 'Add an access code and remove Attendaa branding when you want the invitation to feel entirely yours.'],
+    ['KEEP THE DAY CLOSE', 'The invitation can live on after “yes.”', 'Bring guests back with a reminder, collect their photos, and keep a guest book of the little moments.'],
   ];
   usePageTitle('Attendaa Signature');
 
@@ -61,12 +58,13 @@ export default function Upgrade() {
           <img src={signatureMark} alt="Attendaa Signature" />
           <div><p className="signature-kicker">Attendaa Signature</p><p className="signature-brand-note">For invitations worth keeping</p></div>
         </div>
-        <h1>Make the first yes feel like part of the celebration.</h1>
-        <p className="upgrade-lede">Signature turns an RSVP link into a more personal invitation—from the music guests hear when it opens to the details that make it unmistakably yours.</p>
-        <div className="upgrade-promise"><strong>For showers, birthdays, reunions, graduations, and the people you cannot wait to gather.</strong><span>Start free. Upgrade only when the moment calls for more.</span></div>
-        <div className="upgrade-feature-list">
-          {signatureFeatures.map(([title, description]) => <article key={title}><span aria-hidden="true">✦</span><h2>{title}</h2><p>{description}</p></article>)}
+        <h1>Make the invitation feel as special as the day.</h1>
+        <p className="upgrade-lede">Attendaa Signature turns your RSVP link into a more personal place to gather—before, during, and after the celebration.</p>
+        <div className="upgrade-promise"><strong>$19 one time, for one event.</strong><span>No subscription. No automatic renewal. Edit your event whenever plans change.</span></div>
+        <div className="upgrade-outcome-list">
+          {signatureOutcomes.map(([eyebrow, title, description]) => <article key={eyebrow}><span>{eyebrow}</span><h2>{title}</h2><p>{description}</p></article>)}
         </div>
+        <div className="upgrade-comparison" aria-label="Free and Signature feature comparison"><div><strong>Free</strong><span>One beautiful RSVP link, event details, guest list, flyer upload, registry link, and a downloadable QR code.</span></div><div><strong>Signature</strong><span>Everything in Free, plus elevated invitation looks, audio, privacy, reminders, photo album, guest book, and branding removal.</span></div></div>
         {searchParams.get('checkout') === 'success' && <p className="checkout-message">Thanks—your payment was received. Your Signature access will be active in a moment.</p>}
         {searchParams.get('checkout') === 'cancelled' && <p className="upgrade-note">Checkout was cancelled. Your free account is unchanged.</p>}
         {isPremium ? <Link className="primary-btn" to="/hub">Signature is active — go to my hub</Link> : user ? (
@@ -74,7 +72,7 @@ export default function Upgrade() {
             <button className="primary-btn" type="button" disabled={checkingOut} onClick={startCheckout}>{checkingOut ? 'Opening secure checkout…' : 'Continue to secure checkout'}</button>
             {events.length > 0 ? <label className="upgrade-event-picker">Choose the event for Attendaa Signature<select value={selectedEventId} onChange={(event) => setSelectedEventId(event.target.value)}>{events.map((event) => <option key={event.id} value={event.id}>{event.title}{event.event_date ? ` — ${new Date(event.event_date).toLocaleDateString()}` : ''}</option>)}</select></label> : <p className="upgrade-note">Create your free event first. Then return here to add Signature to that invitation.</p>}
             {checkoutError && <p className="auth-error">{checkoutError}</p>}
-            <p className="upgrade-note">Attendaa Signature is a one-time payment for one event—no recurring subscription. Secure payment is handled by Stripe.</p>
+            <p className="upgrade-note">One payment, one event, no recurring subscription. Your published event stays live for 90 days after its date, and you can edit it whenever plans change. Secure payment is handled by Stripe.</p>
           </>
         ) : <Link className="primary-btn" to="/login?mode=signup">Create a free account to upgrade</Link>}
       </section>
