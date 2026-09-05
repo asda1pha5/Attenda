@@ -26,8 +26,21 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadAll();
     loadMetaConnection();
-    const metaResult = new URLSearchParams(window.location.search).get('meta');
-    if (metaResult === 'error') setMetaError('Meta did not complete the connection. Check the Page and Instagram linkage, then try again.');
+    const metaParams = new URLSearchParams(window.location.search);
+    const metaResult = metaParams.get('meta');
+    const metaReason = metaParams.get('reason');
+    const metaErrorMessages = {
+      request_validation: 'Meta returned an incomplete authorization response. Try connecting again.',
+      state_lookup: 'The Meta authorization expired or could not be verified. Try connecting again.',
+      state_consume: 'This Meta authorization was already used. Try connecting again.',
+      authorization_code_exchange: 'Meta rejected the authorization code. Verify the Meta App ID, App Secret, and redirect URI.',
+      long_lived_token_exchange: 'Meta could not create a long-lived access token. Verify the Meta app credentials.',
+      page_account_lookup: 'Meta did not allow Attendaa to read the Facebook Page. Verify the Page permissions in the login configuration.',
+      expected_account_match: 'The authorized Facebook Page does not match the configured Page ID or is not linked to @attendaa_.',
+      token_encryption: 'The server token-encryption key is invalid. It must be a base64-encoded 32-byte key.',
+      connection_storage: 'Attendaa could not securely save the Instagram connection. Check the connection table and server logs.',
+    };
+    if (metaResult === 'error') setMetaError(metaErrorMessages[metaReason] || 'Meta did not complete the connection. Check the Page and Instagram linkage, then try again.');
     if (metaResult) window.history.replaceState({}, '', '/admin');
   }, []);
 

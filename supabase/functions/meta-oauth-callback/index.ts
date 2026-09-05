@@ -40,7 +40,7 @@ function finishUrl(status: 'connected' | 'error') {
 
 Deno.serve(async (request) => {
   let stage = 'request_validation';
-  const errorUrl = () => redirect(finishUrl('error'));
+  const errorUrl = (reason?: string) => redirect(`${finishUrl('error')}${reason ? `&reason=${encodeURIComponent(reason)}` : ''}`);
   if (request.method !== 'GET') return new Response('Method not allowed', { status: 405 });
 
   try {
@@ -141,6 +141,6 @@ Deno.serve(async (request) => {
     return redirect(finishUrl('connected'));
   } catch (error) {
     console.error(`[meta-oauth-callback] ${stage}: ${error instanceof Error ? error.message : String(error)}`);
-    return errorUrl();
+    return errorUrl(stage);
   }
 });
