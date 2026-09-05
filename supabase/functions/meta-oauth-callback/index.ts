@@ -40,6 +40,8 @@ function finishUrl(status: 'connected' | 'error') {
 
 Deno.serve(async (request) => {
   let stage = 'request_validation';
+  let admin: ReturnType<typeof createClient> | null = null;
+  let attemptId: string | null = null;
   const errorUrl = (reason?: string) => redirect(`${finishUrl('error')}${reason ? `&reason=${encodeURIComponent(reason)}` : ''}`);
   if (request.method !== 'GET') return new Response('Method not allowed', { status: 405 });
 
@@ -50,7 +52,7 @@ Deno.serve(async (request) => {
     if (!code || !state || incoming.searchParams.has('error')) return errorUrl();
 
     stage = 'state_lookup';
-    const admin = createClient(required('SUPABASE_URL'), required('SUPABASE_SERVICE_ROLE_KEY'));
+    admin = createClient(required('SUPABASE_URL'), required('SUPABASE_SERVICE_ROLE_KEY'));
     const stateHash = await sha256(state);
     const { data: attempt, error: attemptError } = await admin
       .from('meta_oauth_attempts')
@@ -58,6 +60,7 @@ Deno.serve(async (request) => {
       .eq('state_hash', stateHash)
       .maybeSingle();
     if (attemptError || !attempt || attempt.consumed_at || new Date(attempt.expires_at) < new Date()) return errorUrl();
+    attemptId = attempt.id;
 
     stage = 'state_consume';
     const { data: consumed } = await admin
@@ -141,6 +144,13 @@ Deno.serve(async (request) => {
     return redirect(finishUrl('connected'));
   } catch (error) {
     console.error(`[meta-oauth-callback] ${stage}: ${error instanceof Error ? error.message : String(error)}`);
+    if (admin && attemptId) {
+      const { error: diagnosticError } = await admin
+        .from('meta_oauth_attempts')
+        .update({ failure_stage: stage, failed_at: new Date().toISOString() })
+        .eq('id', attemptId);
+      if (diagnosticError) console.error(`[meta-oauth-callback] diagnostic_storage: ${diagnosticError.message}`);
+    }
     return errorUrl(stage);
   }
 });
