@@ -68,7 +68,7 @@ Deno.serve(async (request) => {
     authorizeUrl.searchParams.set('redirect_uri', redirectUri);
     authorizeUrl.searchParams.set('response_type', 'code');
     authorizeUrl.searchParams.set('state', state);
-    authorizeUrl.searchParams.set('scope', 'instagram_basic,instagram_content_publishing,pages_read_engagement,business_management,pages_show_list');
+    authorizeUrl.searchParams.set('scope', 'instagram_basic,instagram_content_publish,pages_read_engagement,business_management,pages_show_list');
     const configId = Deno.env.get('META_BUSINESS_LOGIN_CONFIG_ID');
     if (configId) authorizeUrl.searchParams.set('config_id', configId);
 
