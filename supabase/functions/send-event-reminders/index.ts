@@ -32,7 +32,7 @@ Deno.serve(async (request) => {
       const daysBefore = event.reminder_days_before || 1;
       const dueDate = reminderDates.find(({ days }) => days === daysBefore)?.date;
       if (event.event_date !== dueDate) continue;
-      const { data: guests, error: guestsError } = await admin.from('rsvps').select('id,guest_name,guest_email').eq('event_id', event.id).in('attending', ['Yes', 'Maybe']).is('reminder_sent_at', null);
+      const { data: guests, error: guestsError } = await admin.from('rsvps').select('id,guest_name,guest_email').eq('event_id', event.id).in('attending', ['Yes', 'Maybe']).is('cancelled_at', null).is('reminder_sent_at', null);
       if (guestsError) throw guestsError;
       for (const guest of guests || []) {
         const appUrl = Deno.env.get('APP_URL')?.replace(/\/$/, '');

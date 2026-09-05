@@ -14,6 +14,7 @@ export default function SubmissionsTable({ eventId }) {
         .from('rsvps')
         .select('*')
         .eq('event_id', eventId)
+        .is('cancelled_at', null)
         .order('created_at', { ascending: false });
       if (mounted) {
         if (!error) setRows(data);
@@ -22,13 +23,21 @@ export default function SubmissionsTable({ eventId }) {
     }
     load();
 
-    // live updates when a new RSVP comes in
+    // Live updates keep the guest count correct when a guest responds or
+    // securely cancels their RSVP from an Attendaa account.
     const channel = supabase
       .channel(`rsvps-${eventId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'rsvps', filter: `event_id=eq.${eventId}` },
         (payload) => setRows((prev) => [payload.new, ...prev])
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'rsvps', filter: `event_id=eq.${eventId}` },
+        (payload) => {
+          if (payload.new.cancelled_at) setRows((prev) => prev.filter((row) => row.id !== payload.new.id));
+        }
       )
       .subscribe();
 

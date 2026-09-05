@@ -155,6 +155,7 @@ export default function PublicEvent() {
         <div className="thank-you">
           Thank you - your RSVP has been received!
           <span>We can't wait to celebrate with you.</span>
+          <Link className="rsvp-manage-link" to={`/rsvp/${slug}/manage`}>Need to change plans? Manage your RSVP</Link>
         </div>
       ) : (
         <form className="rsvp-form" onSubmit={handleSubmit}>
@@ -192,6 +193,8 @@ export default function PublicEvent() {
           {status === 'error' && <div className="status-msg">{errorMsg}</div>}
         </form>
       )}
+
+      {status !== 'done' && <Link className="rsvp-manage-link" to={`/rsvp/${slug}/manage`}>Already RSVP’d? Manage or cancel it</Link>}
 
       {event.registry_position !== 'top' && registryButton}
     </div>

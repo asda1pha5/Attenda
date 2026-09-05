@@ -594,6 +594,19 @@ body {
 }
 .rsvp-form textarea { resize: vertical; min-height: 72px; }
 .rsvp-privacy-note { align-self: stretch; margin: 1px 2px 2px; color: #718071; font-size: 11px; line-height: 1.35; text-align: center; }
+.rsvp-manage-link { display: block; width: fit-content; margin: 14px auto 0; color: #536a53; font-size: 12px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.rsvp-manager-page { display: grid; min-height: calc(100vh - 70px); place-items: center; padding: 40px 20px; background: radial-gradient(circle at 12% 10%, rgba(214, 228, 204, .78), transparent 28%), #f4f5ef; }
+.rsvp-manager-card { width: min(100%, 520px); padding: clamp(28px, 5vw, 46px); border: 1px solid #dbe4d7; border-radius: 20px; background: #fffdf9; box-shadow: 0 18px 44px rgba(48, 69, 51, .12); text-align: center; }
+.rsvp-manager-card h1 { margin: 0 0 12px; color: #354934; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(30px, 5vw, 42px); letter-spacing: -.035em; }
+.rsvp-manager-card > p:not(.signature-kicker):not(.auth-error):not(.auth-info) { margin: 0; color: #667364; line-height: 1.62; }
+.rsvp-manager-card strong { color: #40563f; overflow-wrap: anywhere; }
+.rsvp-manager-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 26px; }
+.rsvp-manager-actions .primary-btn, .rsvp-manager-actions .secondary-btn { min-width: 156px; text-align: center; }
+.rsvp-cancel-button { width: 100%; margin-top: 24px; padding: 13px 18px; border: 1px solid #ad4f42; border-radius: 9px; background: #fff8f6; color: #9d3f34; font: inherit; font-weight: 750; cursor: pointer; }
+.rsvp-cancel-button:hover:not(:disabled) { background: #fbedeb; }
+.rsvp-cancel-button:disabled { cursor: wait; opacity: .72; }
+.rsvp-manager-note, .rsvp-manager-message { margin: 14px 0 0 !important; font-size: 13px; line-height: 1.5; }
+.rsvp-manager-back { display: inline-block; margin-top: 24px; color: #536a53; font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .rsvp-subtitle {
   margin: -8px 0 18px;
   color: #5a6b5a;

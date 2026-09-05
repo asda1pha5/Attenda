@@ -11,6 +11,7 @@ import Landing from './pages/Landing';
 import FunnelDashboard from './pages/FunnelDashboard';
 import BabyShowerLanding from './pages/BabyShowerLanding';
 import Support from './pages/Support';
+import ManageRsvp from './pages/ManageRsvp';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/help" element={<Support />} />
 
         <Route path="/e/:slug" element={<PublicEvent />} />
+        <Route path="/rsvp/:slug/manage" element={<ManageRsvp />} />
 
         <Route
           path="/hub"

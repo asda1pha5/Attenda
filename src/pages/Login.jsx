@@ -13,6 +13,7 @@ export default function Login() {
   const { user, loading } = useAuth();
   const requestedNext = new URLSearchParams(location.search).get('next');
   const nextPath = requestedNext?.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '/hub';
+  const rsvpManagement = nextPath.startsWith('/rsvp/') && nextPath.endsWith('/manage');
   const [mode, setMode] = useState(() => new URLSearchParams(location.search).get('mode') === 'signin' ? 'signin' : 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,7 +81,9 @@ export default function Login() {
       if (error) setError(error.message);
       else {
         await trackFunnelEvent('signup_completed');
-        setInfo('Your account is ready. Confirm your email, and we’ll bring you straight to your hub.');
+        setInfo(rsvpManagement
+          ? 'Your account is ready. Confirm your email, then return here to securely manage your RSVP.'
+          : 'Your account is ready. Confirm your email, and we’ll bring you straight to your hub.');
       }
     }
     setBusy(false);
@@ -93,7 +96,7 @@ export default function Login() {
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email,
-      options: { emailRedirectTo: `${window.location.origin}/hub` },
+      options: { emailRedirectTo: `${window.location.origin}${nextPath}` },
     });
     if (error) setError(error.message);
     else setInfo('A fresh confirmation email is on its way.');
@@ -134,8 +137,8 @@ export default function Login() {
       )}
       <div className={`auth-card ${mode === 'signup' ? 'auth-card-signup' : ''}`}>
         {mode === 'signup' && <p className="auth-brand">Plan · Invite · RSVP · Celebrate</p>}
-        <h1>{mode === 'signin' ? 'Attendaa' : mode === 'recovery' ? 'Reset your password' : mode === 'reset' ? 'Choose a new password' : 'Create your account'}</h1>
-        <p className="auth-sub">{mode === 'signin' ? 'Sign in to your hub' : mode === 'recovery' ? 'We’ll email you a secure reset link.' : mode === 'reset' ? 'Keep your Attendaa account secure.' : 'Start making invitations your guests will want to open.'}</p>
+        <h1>{mode === 'signin' ? (rsvpManagement ? 'Manage your RSVP' : 'Attendaa') : mode === 'recovery' ? 'Reset your password' : mode === 'reset' ? 'Choose a new password' : rsvpManagement ? 'Create an account to manage your RSVP' : 'Create your account'}</h1>
+        <p className="auth-sub">{mode === 'signin' ? (rsvpManagement ? 'Sign in with the email address you used to RSVP.' : 'Sign in to your hub') : mode === 'recovery' ? 'We’ll email you a secure reset link.' : mode === 'reset' ? 'Keep your Attendaa account secure.' : rsvpManagement ? 'Use the same email address you used to RSVP so only you can change it.' : 'Start making invitations your guests will want to open.'}</p>
 
         {mode === 'signin' && (
           <div className="signin-flourish">
