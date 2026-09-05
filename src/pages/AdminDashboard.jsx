@@ -18,10 +18,39 @@ export default function AdminDashboard() {
   const [retentionDays, setRetentionDays] = useState(90);
   const [savingRetention, setSavingRetention] = useState(false);
   const [retentionError, setRetentionError] = useState('');
+  const [metaConnection, setMetaConnection] = useState(null);
+  const [metaLoading, setMetaLoading] = useState(true);
+  const [metaError, setMetaError] = useState('');
+  const [metaConnecting, setMetaConnecting] = useState(false);
 
   useEffect(() => {
     loadAll();
+    loadMetaConnection();
+    const metaResult = new URLSearchParams(window.location.search).get('meta');
+    if (metaResult === 'error') setMetaError('Meta did not complete the connection. Check the Page and Instagram linkage, then try again.');
+    if (metaResult) window.history.replaceState({}, '', '/admin');
   }, []);
+
+  async function loadMetaConnection() {
+    setMetaLoading(true);
+    setMetaError('');
+    const { data, error } = await supabase.functions.invoke('meta-oauth-status', { method: 'GET' });
+    if (error) setMetaError('Instagram connection status is unavailable until the Meta functions are deployed.');
+    else setMetaConnection(data?.connection || null);
+    setMetaLoading(false);
+  }
+
+  async function connectInstagram() {
+    setMetaConnecting(true);
+    setMetaError('');
+    const { data, error } = await supabase.functions.invoke('meta-oauth-start');
+    if (error || !data?.authorizeUrl) {
+      setMetaError('Unable to begin the Meta authorization. Check the server configuration and try again.');
+      setMetaConnecting(false);
+      return;
+    }
+    window.location.assign(data.authorizeUrl);
+  }
 
   async function loadAll() {
     setLoading(true);
@@ -133,6 +162,19 @@ export default function AdminDashboard() {
           </select>
         </label>
       </div>
+
+      <section className="admin-retention-controls">
+        <div>
+          <p className="signature-kicker">INSTAGRAM CONNECTION</p>
+          <h2>{metaConnection ? `@${metaConnection.instagram_username || 'Instagram'} is connected` : 'Connect Attendaa Instagram'}</h2>
+          <p>{metaConnection ? `Connected to ${metaConnection.facebook_page_name || 'the Facebook Page'} on ${new Date(metaConnection.connected_at).toLocaleDateString()}.` : 'Connect only the Attendaa business account. This does not publish, message, or comment.'}</p>
+        </div>
+        <button className="secondary-btn" type="button" onClick={connectInstagram} disabled={metaConnecting || metaLoading}>
+          {metaConnecting ? 'Opening Meta…' : metaConnection ? 'Reconnect Instagram' : 'Connect Instagram'}
+        </button>
+        {metaLoading && <p className="muted">Checking connection…</p>}
+        {metaError && <p className="auth-error">{metaError}</p>}
+      </section>
 
       <section className="admin-retention-controls">
         <div><p className="signature-kicker">EVENT RETENTION</p><h2>Keep published events live for</h2><p>After an event date passes, its public RSVP page closes automatically. Events with no date remain live until you change them.</p></div>
