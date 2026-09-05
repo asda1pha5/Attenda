@@ -2,4 +2,4 @@
 -- without logging authorization codes, access tokens, or user data.
 alter table public.meta_oauth_attempts
   add column if not exists failure_stage text,
-  add column if not exists failed_at timestamptz;
+  add column if not exists failed_at timestamptz;;
