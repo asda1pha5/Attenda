@@ -7,10 +7,12 @@ import CommentWall from '../components/CommentWall';
 import EventPhotoAlbum from '../components/EventPhotoAlbum';
 import { getFlyerBackground } from '../lib/flyerBackgrounds';
 import { signatureTemplates } from '../lib/signatureTemplates';
+import { trackFunnelEvent } from '../lib/funnelAnalytics';
 
-export default function PublicEvent() {
+export default function PublicEvent({ demoEvent = null }) {
   const { slug } = useParams();
-  const [event, setEvent] = useState(null);
+  const [event, setEvent] = useState(demoEvent);
+  const [demoRegistry, setDemoRegistry] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [expired, setExpired] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -25,11 +27,14 @@ export default function PublicEvent() {
   const [status, setStatus] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
-  usePageTitle(event ? `RSVP for ${event.title}` : 'Invitation');
+  usePageTitle(event ? `RSVP for ${event.title}` : 'Invitation', !demoEvent);
 
   useEffect(() => {
-    loadEvent(sessionStorage.getItem(`attenda-access-${slug}`));
-  }, [slug]);
+    if (demoEvent) { setEvent(demoEvent); return; }
+    let code = null;
+    try { code = sessionStorage.getItem(`attenda-access-${slug}`); } catch { /* Private browsing may block storage. */ }
+    loadEvent(code);
+  }, [slug, demoEvent]);
 
   useEffect(() => {
     document.body.classList.toggle('public-event-unbranded', Boolean(event?.remove_branding));
@@ -77,6 +82,7 @@ export default function PublicEvent() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (demoEvent) { setStatus('done'); return; }
     setStatus('sending');
     setErrorMsg('');
 
@@ -95,6 +101,7 @@ export default function PublicEvent() {
       setErrorMsg('Something went wrong - please try again.');
     } else {
       setStatus('done');
+      if (!event.remove_branding) void trackFunnelEvent('rsvp_acquisition_shown', { experiment: 'rsvp-host-cta-v1' });
       if (rsvp?.notification_token) {
         void notifyHost({
           eventId: event.id,
@@ -139,7 +146,7 @@ export default function PublicEvent() {
   const cssVars = { '--theme': theme, '--accent': accent, '--flyer-bg': background.color, '--flyer-ink': background.ink };
 
   const registryButton = event.registry_link && (
-    <a className="registry-link" href={event.registry_link} target="_blank" rel="noopener noreferrer">
+    <a className="registry-link" href={demoEvent ? '#demo-registry' : event.registry_link} target={demoEvent ? undefined : '_blank'} rel="noopener noreferrer" onClick={demoEvent ? (e) => { e.preventDefault(); setDemoRegistry((value) => !value); } : undefined}>
       View Our Registry
     </a>
   );
@@ -153,15 +160,16 @@ export default function PublicEvent() {
 
       {status === 'done' ? (
         <div className="thank-you">
-          Thank you - your RSVP has been received!
+          {demoEvent ? 'Demo RSVP complete — nothing was sent.' : 'Thank you - your RSVP has been received!'}
           <span>We can't wait to celebrate with you.</span>
-          <Link className="rsvp-manage-link" to={`/rsvp/${slug}/manage`}>Need to change plans? Manage your RSVP</Link>
+          {demoEvent ? <button type="button" className="link-btn" onClick={() => setStatus('idle')}>Try the demo again</button> : <Link className="rsvp-manage-link" to={`/rsvp/${slug}/manage`}>Need to change plans? Manage your RSVP</Link>}
+          {!demoEvent && !event.remove_branding && <Link className="rsvp-manage-link" to="/create?utm_source=attendaa&utm_medium=invitation&utm_campaign=host-discovery&utm_content=rsvp-host-cta-v1" onClick={() => void trackFunnelEvent('rsvp_acquisition_clicked', { experiment: 'rsvp-host-cta-v1' })}>Hosting something yourself? Create your invitation</Link>}
         </div>
       ) : (
         <form className="rsvp-form" onSubmit={handleSubmit}>
-          <input type="text" placeholder="Family / Guest Name(s)" value={name} onChange={(e) => setName(e.target.value)} required />
+          {demoEvent ? <p>Try a fictional RSVP. No guest information is needed.</p> : <><input type="text" placeholder="Family / Guest Name(s)" value={name} onChange={(e) => setName(e.target.value)} required />
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <input type="tel" placeholder="Phone (optional)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <input type="tel" placeholder="Phone (optional)" value={phone} onChange={(e) => setPhone(e.target.value)} /></>}
           <div className="guest-count-control">
             <span>Total Guests <small>(Including you)</small></span>
             <div>
@@ -175,7 +183,7 @@ export default function PublicEvent() {
             <label><input type="radio" name="attending" value="Maybe" checked={attending === 'Maybe'} onChange={(e) => setAttending(e.target.value)} required /> Maybe</label>
             <label><input type="radio" name="attending" value="No" checked={attending === 'No'} onChange={(e) => setAttending(e.target.value)} required /> No</label>
           </div>
-          <label className="private-message-field">
+          {!demoEvent && <label className="private-message-field">
             Private message for the host <span>(optional, 250 characters)</span>
             <textarea
               rows="3"
@@ -185,8 +193,8 @@ export default function PublicEvent() {
               placeholder="Share something just with the host..."
             />
             <small>{privateMessage.length}/250</small>
-          </label>
-          <p className="rsvp-privacy-note">Your RSVP details are visible only to the event host.</p>
+          </label>}
+          <p className="rsvp-privacy-note">{demoEvent ? 'Fictional preview — no guest data is collected.' : 'Your RSVP details are visible only to the event host.'}</p>
           <button type="submit" className="submit-btn" disabled={status === 'sending'}>
             {status === 'sending' ? 'Sending...' : 'Send RSVP'}
           </button>
@@ -194,9 +202,10 @@ export default function PublicEvent() {
         </form>
       )}
 
-      {status !== 'done' && <Link className="rsvp-manage-link" to={`/rsvp/${slug}/manage`}>Already RSVP’d? Manage or cancel it</Link>}
+      {!demoEvent && status !== 'done' && <Link className="rsvp-manage-link" to={`/rsvp/${slug}/manage`}>Already RSVP’d? Manage or cancel it</Link>}
 
       {event.registry_position !== 'top' && registryButton}
+      {demoEvent && demoRegistry && <p role="status">Fictional registry preview: a place for the host’s registry link, available on Free.</p>}
     </div>
   );
 
@@ -261,19 +270,19 @@ export default function PublicEvent() {
             Your browser does not support audio playback.
           </audio>
         )}
-        <CommentWall
+        {!demoEvent && <CommentWall
           eventId={event.id}
           canComment={status === 'done'}
           guestName={name}
           guestEmail={email}
-        />
-        {event.photo_album_enabled && (
+        />}
+        {!demoEvent && event.photo_album_enabled && (
           <EventPhotoAlbum eventId={event.id} canUpload={status === 'done'} guestName={name} guestEmail={email} />
         )}
       </div>
-      {!event.remove_branding && (
-        <Link to="/login?mode=signup" className="create-invite-cta">
-          Want to make your own invite? <span>Click here</span>
+      {!demoEvent && !event.remove_branding && status !== 'done' && (
+        <Link to="/create?utm_source=attendaa&utm_medium=invitation&utm_campaign=host-discovery&utm_content=invitation-footer-v1" className="create-invite-cta" onClick={() => void trackFunnelEvent('rsvp_acquisition_clicked', { experiment: 'invitation-footer-v1' })}>
+          Hosting something yourself? <span>Create your invitation</span>
         </Link>
       )}
     </div>

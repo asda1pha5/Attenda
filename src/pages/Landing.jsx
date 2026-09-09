@@ -5,6 +5,7 @@ import { usePageTitle } from '../lib/usePageTitle';
 import { trackFunnelEvent } from '../lib/funnelAnalytics';
 import celebrationImage from '../assets/signup-celebration-collage.png';
 import stationeryImage from '../assets/landing-stationery.png';
+import InvitationDemo from '../components/InvitationDemo';
 
 export default function Landing() {
   const { user } = useAuth();
@@ -26,7 +27,7 @@ export default function Landing() {
     return () => observer.disconnect();
   }, []);
 
-  const startLink = user ? '/hub/new' : '/login?mode=signup';
+  const startLink = '/create';
 
   return (
     <main className="landing-page">
@@ -56,13 +57,14 @@ export default function Landing() {
         </div>
       </section>
 
+      <InvitationDemo />
       <section className="landing-section landing-reveal" id="how-it-works">
         <p className="landing-eyebrow">BUILT FOR FAMILY MILESTONES</p>
         <h2>From invite to headcount in three simple steps.</h2>
         <div className="landing-walkthroughs">
           <article><img src="/marketing/brunch-live-hub-styles.png" alt="Real Attendaa Hub styling controls" /><div><span>01 · MAKE IT YOURS</span><h3>Start with the details, then choose the feeling.</h3><p>Add your flyer, date, place, and the invitation look that fits your celebration.</p></div></article>
           <article><img src="/marketing/attendaa-live-rsvp-story.png" alt="Real Attendaa RSVP page with a Send RSVP callout" /><div><span>02 · SHARE ONE LINK</span><h3>Give guests a page they’ll actually want to open.</h3><p>Text it, add it to an invitation, or share it anywhere your people are gathering.</p></div></article>
-          <article><img src="/marketing/attendaa-live-guestbook-story.png" alt="Real Attendaa guest book and photo album page section" /><div><span>03 · KEEP THE CELEBRATION CLOSE</span><h3>More than a headcount.</h3><p>Signature can turn the invite into a guest book and photo album guests return to.</p></div></article>
+          <article><img src="/marketing/attendaa-live-guestbook-story.png" alt="Real Attendaa guest book and photo album page section" /><div><span>03 · KEEP THE CELEBRATION CLOSE</span><h3>More than a headcount.</h3><p>Keep guests’ wishes in the guest book. Signature adds a photo album for the celebration.</p></div></article>
         </div>
       </section>
 

@@ -1,30 +1,32 @@
 import { supabase } from './supabaseClient';
+import { captureAttribution, analyticsPath, safeProperties } from './attribution';
 
 const visitorKey = 'attenda-funnel-visitor-id';
-const attributionKey = 'attenda-funnel-attribution';
+let memoryVisitor;
+let memoryAttribution = {};
 
 function visitorId() {
-  let id = localStorage.getItem(visitorKey);
+  let id;
+  try { id = localStorage.getItem(visitorKey); } catch {}
+  if (id && !/^[0-9a-f-]{36}$/i.test(id)) id = null;
   if (!id) {
-    id = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    localStorage.setItem(visitorKey, id);
+    id = memoryVisitor || crypto.randomUUID();
+    try { localStorage.setItem(visitorKey, id); } catch {}
   }
+  memoryVisitor = id;
   return id;
 }
 
 function attribution() {
-  const params = new URLSearchParams(window.location.search);
-  let referrerHost = null;
-  try { referrerHost = document.referrer ? new URL(document.referrer).hostname : null; } catch { /* Ignore malformed referrers. */ }
-  const current = {
-    referrer_host: referrerHost,
-    source: params.get('utm_source'),
-    medium: params.get('utm_medium'),
-    campaign: params.get('utm_campaign'),
-  };
-  const hasCampaignData = Object.values(current).some(Boolean);
-  if (hasCampaignData) sessionStorage.setItem(attributionKey, JSON.stringify(current));
-  try { return hasCampaignData ? current : JSON.parse(sessionStorage.getItem(attributionKey) || '{}'); } catch { return current; }
+  let storage;
+  try { storage = localStorage; } catch {}
+  const current = captureAttribution(window.location.search, storage);
+  if (Object.keys(current).length) memoryAttribution = current;
+  return memoryAttribution;
+}
+
+export function getCheckoutAttribution() {
+  return { attribution: Object.fromEntries(Object.entries(attribution()).map(([key, value]) => [`utm_${key}`, value])), visitor_id: visitorId() };
 }
 
 // This records product behavior, not names, emails, or RSVP content.
@@ -34,8 +36,8 @@ export async function trackFunnelEvent(eventName, properties = {}, userId = null
       event_name: eventName,
       visitor_id: visitorId(),
       user_id: userId,
-      path: window.location.pathname,
-      properties,
+      path: analyticsPath(window.location.pathname),
+      properties: safeProperties(properties),
       ...attribution(),
     });
   } catch {

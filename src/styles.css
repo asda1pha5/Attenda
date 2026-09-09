@@ -831,3 +831,28 @@ body.public-event-unbranded .public-card-wrap { padding-top: clamp(16px, 4vw, 48
 }
 @media (prefers-reduced-motion: reduce) { .landing-reveal { opacity: 1; transform: none; transition: none; }.landing-rsvp-card, .landing-spark { animation: none; } }
 .support-signed-in-note { margin: 0; padding: 12px 13px; border: 1px solid #dce7d7; border-radius: 9px; background: #f5f8f1; color: #5f705f; font-size: 13px; line-height: 1.45; }.support-signed-in-note strong { color: #405341; }
+/* Conversion preview: share the real invitation layout inside bounded pages. */
+.draft-page { width: min(100% - 32px, 960px); margin: 48px auto 80px; }
+.draft-page h1 { font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1.12; }
+.draft-page > p, .invitation-demo > p { line-height: 1.65; }
+.draft-form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 28px 0 16px; }
+.draft-page label, .invitation-demo > label { display: grid; gap: 8px; font-weight: 600; }
+.draft-page input, .draft-page select, .draft-page textarea, .invitation-demo > label select { width: 100%; min-width: 0; box-sizing: border-box; padding: 12px; border: 1px solid #899282; border-radius: 9px; background: #fffdf8; color: #293729; font: inherit; }
+.invitation-demo { width: min(100% - 32px, 960px); box-sizing: border-box; margin: 42px auto; padding: clamp(16px, 3vw, 30px); border: 1px solid #b8c2b2; border-radius: 20px; background: #faf9f4; color: #293729; }
+.draft-page .invitation-demo, .upgrade-card .invitation-demo { width: 100%; }
+.invitation-demo .public-page { min-height: 0; border-radius: 14px; overflow: hidden; }
+.invitation-demo .public-card-wrap { padding: 20px 12px; width: 100%; min-width: 0; min-height: 0; box-sizing: border-box; }
+.invitation-demo .invitation-frame { box-sizing: border-box; max-width: 560px; }
+.invitation-demo .public-card.layout-standalone { grid-template-columns: minmax(0, 1fr); max-width: 100%; }
+.invitation-demo .rsvp-box, .invitation-demo .event-details-panel { animation: none; }
+.demo-notice { border-left: 3px solid #63765f; padding-left: 12px; font-size: .9rem; }
+.wording-page { max-width: 760px; }
+.wording-page label { margin: 20px 0; }
+.wording-page textarea { resize: vertical; line-height: 1.6; font-weight: 400; }
+@media (max-width: 600px) {
+  .draft-form { grid-template-columns: 1fr; }
+  .draft-page { margin-top: 28px; }
+  .invitation-demo { padding: 16px; }
+  .invitation-demo .public-card-wrap { padding: 12px 4px; }
+  .draft-page > .primary-btn { width: 100%; box-sizing: border-box; text-align: center; }
+}

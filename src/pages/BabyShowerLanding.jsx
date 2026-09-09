@@ -12,9 +12,10 @@ export default function BabyShowerLanding() {
   useEffect(() => {
     document.querySelector('meta[name="description"]')?.setAttribute('content', 'Create a beautiful baby shower RSVP website. Share every detail, collect responses, add your registry, and keep the celebration together.');
     void trackFunnelEvent('baby_shower_landing_view');
+    void trackFunnelEvent('landing_view', { entry: 'baby-shower' });
   }, []);
 
-  const startLink = (style) => user ? `/hub/new?style=${style}` : `/login?mode=signup&next=${encodeURIComponent(`/hub/new?style=${style}`)}`;
+  const startLink = (style) => `/create?style=${style}`;
 
   return <main className="milestone-page">
     <section className="milestone-hero">
@@ -31,6 +32,7 @@ export default function BabyShowerLanding() {
       </div>
     </section>
 
+    <p className="milestone-section">Need a starting point? <Link to="/baby-shower-wording">Try the free baby shower invitation wording tool</Link>.</p>
     <section className="milestone-section" id="styles">
       <p className="landing-eyebrow">START WITH A FEELING</p><h2>Choose an invitation style, then make it yours.</h2>
       <div className="baby-template-grid">

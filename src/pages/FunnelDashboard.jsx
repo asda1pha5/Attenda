@@ -6,11 +6,20 @@ import { usePageTitle } from '../lib/usePageTitle';
 const stages = [
   ['landing_view', 'Landing views'],
   ['landing_cta_clicked', 'Free-start clicks'],
+  ['invitation_started', 'Invitation starts'],
+  ['invitation_previewed', 'Invitation previews'],
   ['signup_started', 'Signups started'],
   ['signup_completed', 'Accounts created'],
   ['event_created', 'Events created'],
+  ['invitation_saved', 'Previews saved'],
+  ['invitation_published', 'Invitations published'],
   ['checkout_started', 'Checkout started'],
   ['checkout_completed', 'Signature activated'],
+  ['rsvp_acquisition_shown', 'Post-RSVP CTA views'],
+  ['rsvp_acquisition_clicked', 'Guest-to-host clicks'],
+  ['wording_tool_viewed', 'Wording tool views'],
+  ['wording_copied', 'Wording copied'],
+  ['wording_create_clicked', 'Wording-to-invitation clicks'],
 ];
 
 export default function FunnelDashboard() {
@@ -24,7 +33,7 @@ export default function FunnelDashboard() {
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const { data } = await supabase
       .from('funnel_events')
-      .select('event_name, visitor_id, created_at, source, medium, campaign')
+      .select('event_name, visitor_id, created_at, referrer_host, source, medium, campaign, content')
       .gte('created_at', since)
       .order('created_at', { ascending: false });
     setEvents(data || []);
@@ -41,6 +50,13 @@ export default function FunnelDashboard() {
     events.filter((event) => event.event_name === 'landing_view').forEach((event) => {
       const label = event.source || event.referrer_host || 'Direct';
       grouped.set(label, (grouped.get(label) || 0) + 1);
+    });
+    return [...grouped.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+  }, [events]);
+  const contentItems = useMemo(() => {
+    const grouped = new Map();
+    events.filter((event) => event.event_name === 'landing_view' && event.content).forEach((event) => {
+      grouped.set(event.content, (grouped.get(event.content) || 0) + 1);
     });
     return [...grouped.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
   }, [events]);
@@ -64,6 +80,10 @@ export default function FunnelDashboard() {
           <section className="funnel-sources">
             <h2>Top traffic sources</h2>
             {sources.length ? <ul>{sources.map(([source, count]) => <li key={source}><span>{source}</span><strong>{count} visits</strong></li>)}</ul> : <p className="muted">Traffic sources will appear after visitors reach the new landing page.</p>}
+          </section>
+          <section className="funnel-sources">
+            <h2>Top content identifiers</h2>
+            {contentItems.length ? <ul>{contentItems.map(([content, count]) => <li key={content}><span>{content}</span><strong>{count} visits</strong></li>)}</ul> : <p className="muted">Content-level attribution will appear after the funnel-content migration is applied and links include utm_content.</p>}
           </section>
         </>
       )}

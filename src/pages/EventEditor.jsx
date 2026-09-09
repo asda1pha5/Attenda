@@ -9,6 +9,7 @@ import { signatureTemplates } from '../lib/signatureTemplates';
 import { optimizeImageUpload, validateAudioUpload } from '../lib/mediaUpload';
 import { trackFunnelEvent } from '../lib/funnelAnalytics';
 import { getBabyShowerStyle } from '../lib/eventStylePresets';
+import InvitationDemo from '../components/InvitationDemo';
 
 const emptyEvent = {
   title: '',
@@ -92,6 +93,7 @@ export default function EventEditor() {
   const [savedQrConfig, setSavedQrConfig] = useState(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const previewRef = useRef(null);
+  const [previewTemplate, setPreviewTemplate] = useState(() => new URLSearchParams(location.search).get('previewStyle') || 'classic');
   const dragState = useRef(null);
 
   usePageTitle(isEditing ? 'Edit Event' : 'New Event');
@@ -370,6 +372,8 @@ export default function EventEditor() {
     delete payload.id;
     delete payload.created_at;
     delete payload.event_password;
+    delete payload.signature_pass_active;
+    delete payload.stripe_payment_intent_id;
 
     let result;
     if (isEditing) {
@@ -397,6 +401,7 @@ export default function EventEditor() {
       updatedAt: result.data.updated_at,
     });
     if (!isEditing) void trackFunnelEvent('event_created', {}, user.id);
+    if (payload.is_published && !savedQrConfig?.isPublished) void trackFunnelEvent('invitation_published');
     if (hasSignatureAccess && (form.event_password.trim() || !form.password_protected)) {
       const { error: passwordError } = await supabase.rpc('set_event_password', {
         target_event_id: eventId,
@@ -422,6 +427,7 @@ export default function EventEditor() {
         </div>
         <Link to={isAdmin ? '/admin' : '/hub'} className="secondary-btn">Back</Link>
       </header>
+      {new URLSearchParams(location.search).get('signature') === 'active' && form.signature_pass_active === true && <p className="auth-info" role="status">Signature is confirmed active for this invitation. Choose your invitation look below.</p>}
 
       <form className="event-form" onSubmit={handleSave}>
         <div className="form-grid">
@@ -812,6 +818,8 @@ export default function EventEditor() {
           {saving ? 'Saving…' : 'Save Event'}
         </button>
       </form>
+      <InvitationDemo draft={{ title: form.title, event_date: form.event_date, event_time: form.event_time, flyer_background: form.flyer_background, address: form.address || 'Add your venue above' }} template={previewTemplate} onTemplateChange={setPreviewTemplate} />
+      {!hasSignatureAccess && isEditing && <p><Link className="secondary-btn" to={`/upgrade?event=${id}`}>Add Signature to this invitation — $19 one time</Link></p>}
     </div>
   );
 }

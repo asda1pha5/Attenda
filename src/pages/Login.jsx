@@ -52,7 +52,7 @@ export default function Login() {
     setInfo('');
     setBusy(true);
 
-    if (mode === 'signup') await trackFunnelEvent('signup_started');
+    if (mode === 'signup') void trackFunnelEvent('signup_started');
 
     if (mode === 'recovery') {
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/login` });
@@ -80,10 +80,10 @@ export default function Login() {
       });
       if (error) setError(error.message);
       else {
-        await trackFunnelEvent('signup_completed');
+        void trackFunnelEvent('signup_completed');
         setInfo(rsvpManagement
           ? 'Your account is ready. Confirm your email, then return here to securely manage your RSVP.'
-          : 'Your account is ready. Confirm your email, and we’ll bring you straight to your hub.');
+          : nextPath.startsWith('/create') ? 'Confirm your email in this browser to restore and save your invitation draft. Your draft stays here for 7 days.' : 'Your account is ready. Confirm your email, and we’ll bring you straight to your hub.');
       }
     }
     setBusy(false);

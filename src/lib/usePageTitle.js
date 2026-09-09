@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
-export function usePageTitle(title) {
+export function usePageTitle(title, enabled = true) {
   useEffect(() => {
-    document.title = title ? `${title} | Attendaa` : 'Attendaa';
-  }, [title]);
+    if (enabled) document.title = title ? `${title} | Attendaa` : 'Attendaa';
+  }, [title, enabled]);
 }
