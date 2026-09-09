@@ -83,6 +83,12 @@ try {
     await page.getByLabel('Time (optional)').fill('14:30');
     await page.getByRole('button', { name: 'Preview invitation', exact: true }).click();
     await page.getByLabel('Invitation look').selectOption('garden');
+    const gardenLayers = await page.locator('.template-garden .rsvp-box').evaluate((box) => ({
+      decoration: getComputedStyle(box, '::after').zIndex,
+      heading: getComputedStyle(box.querySelector('h2')).zIndex,
+      form: getComputedStyle(box.querySelector('.rsvp-form')).zIndex,
+    }));
+    assert.deepEqual(gardenLayers, { decoration: '0', heading: '1', form: '1' }, `${size}: Garden decoration stays behind RSVP content`);
     await screenshot(page, `${size}-preview`);
     await page.reload();
     assert.equal(await page.getByLabel('Invitation title').inputValue(), 'Fictional sunny shower');
