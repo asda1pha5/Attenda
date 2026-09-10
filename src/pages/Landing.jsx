@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../lib/useAuth';
 import { usePageTitle } from '../lib/usePageTitle';
 import { trackFunnelEvent } from '../lib/funnelAnalytics';
-import celebrationImage from '../assets/signup-celebration-collage.png';
+import celebrationImage from '../assets/family-celebration-hero-v2.png';
 import stationeryImage from '../assets/landing-stationery.png';
 import InvitationDemo from '../components/InvitationDemo';
 
