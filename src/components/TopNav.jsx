@@ -25,8 +25,8 @@ export default function TopNav() {
           <>
             <Link to="/hub" onClick={closeMenu}>My hub</Link>
             <Link to="/help" onClick={closeMenu}>Help</Link>
-            <Link className="top-nav-cta" to="/hub/new" onClick={closeMenu}>Create event</Link>
             <button className="top-nav-sign-out" type="button" onClick={handleSignOut}>Sign out</button>
+            <Link className="top-nav-cta" to="/hub/new" onClick={closeMenu}>Create event</Link>
           </>
         ) : !loading && (
           <>
