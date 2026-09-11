@@ -7,6 +7,21 @@ import { getCheckoutAttribution, trackFunnelEvent } from '../lib/funnelAnalytics
 import signatureMark from '../assets/attendaa-signature-mark.png';
 import InvitationDemo from '../components/InvitationDemo';
 
+async function checkoutErrorMessage(error, data) {
+  if (data?.error) return data.error;
+  try {
+    const response = error?.context;
+    if (response?.clone) {
+      const body = await response.clone().json();
+      if (body?.error) return body.error;
+    }
+  } catch {
+    // The function client does not guarantee a JSON error response.
+  }
+  if (error?.context?.status === 401) return 'Your session has expired. Please sign in again.';
+  return 'Unable to start checkout. Please try again.';
+}
+
 export default function Upgrade() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -99,10 +114,10 @@ export default function Upgrade() {
     void trackFunnelEvent('checkout_started', {}, user.id);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout-session', { body: { eventId: selectedEventId, ...getCheckoutAttribution() } });
-      if (error || !data?.url) throw new Error(data?.error || 'Checkout is not available yet. Please try again.');
+      if (error || !data?.url) throw new Error(await checkoutErrorMessage(error, data));
       window.location.assign(data.url);
     } catch (error) {
-      setCheckoutError(error.message || 'Checkout is not available yet. Please try again.');
+      setCheckoutError(error.message || 'Unable to start checkout. Please try again.');
       setCheckingOut(false);
       checkoutLock.current = false;
     }

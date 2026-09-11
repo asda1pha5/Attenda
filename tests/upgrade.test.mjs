@@ -8,7 +8,7 @@ const compiled = await build({ entryPoints: ['src/pages/Upgrade.jsx'], bundle: t
   builder.onLoad({ filter: /.*/, namespace: 'mock' }, ({ path }) => ({ contents: path.endsWith('.png') ? 'export default "mark.png";' : path.includes('InvitationDemo') ? 'export default "invitation-demo";' : `module.exports = globalThis.boundaries;`, loader: 'js' }));
 } } ] });
 
-function harness(query, responses) {
+function harness(query, responses, checkoutResponse = { data: { url: 'https://checkout.stripe.com/example' } }) {
   let cursor = 0; const hooks = []; const pending = []; const timers = []; const calls = []; const redirects = [];
   let params = new URLSearchParams(query);
   const jsx = (type, props) => ({ type, props });
@@ -19,7 +19,7 @@ function harness(query, responses) {
     useEffect(callback, deps) { const index = cursor++; const previous = hooks[index]; if (!previous || deps.some((value, i) => value !== previous[i])) { hooks[index] = deps; pending.push(callback); } },
     useSearchParams: () => [params, (value) => { params = new URLSearchParams(value); }],
     trackFunnelEvent: async () => {}, getCheckoutAttribution: () => ({ attribution: { utm_content: 'sample' }, visitor_id: 'anonymous' }),
-    supabase: { from(table) { calls.push(['from', table]); return { select() { return this; }, eq(key, value) { calls.push([key, value]); return this; }, order: async () => responses.shift() || { data: [] } }; }, functions: { invoke: async (name, body) => { calls.push([name, body]); return { data: { url: 'https://checkout.stripe.com/example' } }; } } },
+    supabase: { from(table) { calls.push(['from', table]); return { select() { return this; }, eq(key, value) { calls.push([key, value]); return this; }, order: async () => responses.shift() || { data: [] } }; }, functions: { invoke: async (name, body) => { calls.push([name, body]); return checkoutResponse; } } },
   };
   const context = vm.createContext({ boundaries, exports: {}, module: { exports: {} }, setTimeout: (fn) => timers.push(fn), clearTimeout() {}, window: { location: { assign: (url) => redirects.push(url) } } });
   vm.runInContext(compiled.outputFiles[0].text, context);
@@ -58,6 +58,14 @@ test('checkout keeps event and attribution, independent of account premium flag;
   assert.equal(requests[0][1].body.eventId, 'event-a');
   assert.equal(requests[0][1].body.attribution.utm_content, 'sample');
   assert.equal(h.redirects.length, 1);
+});
+test('checkout shows the Edge Function response instead of hiding it behind a generic placeholder', async () => {
+  const context = new Response(JSON.stringify({ error: 'Your session has expired. Please sign in again.' }), { status: 401 });
+  const h = harness('event=event-a', [{ data: [event()] }], { data: null, error: { context } });
+  h.render(); const tree = await h.settle();
+  const button = elements(tree).find((el) => el.type === 'button' && text(el).includes('secure checkout'));
+  await button.props.onClick();
+  assert.match(text(h.render()), /session has expired/);
 });
 test('load failures allow retry without claiming purchase success', async () => {
   const h = harness('checkout=success&event=event-a', [{ error: new Error('offline') }]); h.render(); const tree = await h.settle();
