@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../lib/useAuth';
+import { supabase } from '../lib/supabaseClient';
 import AppBrand from './AppBrand';
 
 export default function TopNav() {
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
   const closeMenu = () => setOpen(false);
+
+  async function handleSignOut() {
+    closeMenu();
+    await supabase.auth.signOut();
+  }
 
   return (
     <header className="top-nav">
@@ -20,6 +26,7 @@ export default function TopNav() {
             <Link to="/hub" onClick={closeMenu}>My hub</Link>
             <Link to="/help" onClick={closeMenu}>Help</Link>
             <Link className="top-nav-cta" to="/hub/new" onClick={closeMenu}>Create event</Link>
+            <button className="top-nav-sign-out" type="button" onClick={handleSignOut}>Sign out</button>
           </>
         ) : !loading && (
           <>
