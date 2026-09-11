@@ -11,13 +11,13 @@ async function compile(file) {
 }
 const checkoutCode=await compile('supabase/functions/create-checkout-session/index.ts');
 const webhookCode=await compile('supabase/functions/stripe-webhook/index.ts');
-function harness(code,{auth=true,owned=true,active=false,profileError=false,dbError=false,badPrice=false,invalidSignature=false}={}){
+function harness(code,{auth=true,owned=true,active=false,profileError=false,dbError=false,badPrice=false,invalidSignature=false,missingCustomer=false}={}){
   const calls=[];let handler;
   const metadata={user_id:owner,event_id:id,plan:'signature_pass'};
   const session={id:'cs_one',mode:'payment',status:'complete',payment_status:'paid',amount_total:1900,currency:'usd',client_reference_id:owner,customer:'cus_one',metadata,line_items:{has_more:false,data:[{quantity:1,price:{id:'price_one'}}]},payment_intent:{id:'pi_one',customer:'cus_one',metadata,status:'succeeded',amount_received:1900,currency:'usd'}};
   const stripe = {
     prices: { retrieve: async () => ({ active: true, type: 'one_time', currency: 'usd', unit_amount: badPrice ? 100 : 1900 }) },
-    checkout: { sessions: { create: async (data) => { calls.push(data); return { url: 'https://checkout.stripe.com/test' }; }, retrieve: async () => session } },
+    checkout: { sessions: { create: async (data) => { calls.push(data); if (missingCustomer && calls.length === 1 && data.customer) throw Object.assign(new Error('No such customer'), { code: 'resource_missing', param: 'customer' }); return { url: 'https://checkout.stripe.com/test' }; }, retrieve: async () => session } },
     webhooks: { constructEventAsync: async () => { if (invalidSignature) throw Error('Invalid'); return { id: 'evt_one', type: 'checkout.session.completed', data: { object: { id: 'cs_one' } } }; } },
   };
   function Stripe(){return stripe}Stripe.createSubtleCryptoProvider=()=>({});
@@ -39,6 +39,11 @@ test('checkout preserves event, $19 one-time price and sanitized attribution wit
   assert.equal(response.status,200);const value=h.calls[0];assert.equal(value.mode,'payment');assert.equal(value.metadata.user_id,owner);assert.equal(value.metadata.event_id,id);assert.equal(value.metadata.utm_content,'pin-01');assert.equal(value.metadata.email,undefined);
   assert.match(value.success_url,new RegExp(`event=${id}&checkout=success`));assert.match(value.cancel_url,new RegExp(`event=${id}&checkout=cancelled`));
   assert.equal(value.customer_creation,undefined);assert.equal(value.customer,'cus_one');
+});
+test('checkout recovers when a test-mode customer ID is unavailable in live Stripe',async()=>{
+  const h=harness(checkoutCode,{missingCustomer:true});const response=await h.handler(request({eventId:id}));
+  assert.equal(response.status,200);assert.equal(h.calls.length,2);assert.equal(h.calls[0].customer,'cus_one');
+  assert.equal(h.calls[1].customer,undefined);assert.equal(h.calls[1].customer_email,'fictional@example.test');assert.equal(h.calls[1].customer_creation,'always');
 });
 test('webhook requires valid Stripe signature and returns failure until activation is confirmed',async()=>{
   assert.equal((await harness(webhookCode).handler(request({},{}))).status,400);

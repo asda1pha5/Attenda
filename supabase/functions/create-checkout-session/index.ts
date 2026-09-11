@@ -41,7 +41,7 @@ Deno.serve(async (request) => {
     const billingMode = 'payment';
     const authority = { user_id: user.id, event_id: event.id, plan: 'signature_pass' };
     const metadata = { ...attributionMetadata(attribution, visitor_id), ...authority };
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams = {
       mode: billingMode,
       line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: user.id,
@@ -51,12 +51,33 @@ Deno.serve(async (request) => {
       payment_intent_data: { metadata: authority },
       success_url: `${appUrl}/upgrade?event=${encodeURIComponent(event.id)}&checkout=success`,
       cancel_url: `${appUrl}/upgrade?event=${encodeURIComponent(event.id)}&checkout=cancelled`,
-    });
+    };
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create(sessionParams);
+    } catch (error) {
+      // Customer IDs are isolated between Stripe test and live mode. A host who
+      // used test checkout before launch can therefore have a valid-looking ID
+      // that the live key cannot retrieve. Retry without that stale reference;
+      // the verified webhook stores the new live Customer after payment.
+      const staleCustomer = profile.stripe_customer_id && error?.code === 'resource_missing' && error?.param === 'customer';
+      if (!staleCustomer) throw error;
+      session = await stripe.checkout.sessions.create({
+        ...sessionParams,
+        customer: undefined,
+        customer_email: user.email || undefined,
+        customer_creation: 'always',
+      });
+    }
 
     if (!session.url) throw new Error('Stripe did not return a checkout URL.');
     return json({ url: session.url });
   } catch (error) {
-    console.error('Unable to start Signature checkout');
+    console.error('Unable to start Signature checkout', {
+      type: error instanceof Error ? error.name : 'UnknownError',
+      code: typeof error?.code === 'string' ? error.code : undefined,
+      param: typeof error?.param === 'string' ? error.param : undefined,
+    });
     return json({ error: 'Unable to start checkout. Please try again.' }, 500);
   }
 });
