@@ -14,6 +14,7 @@ import Support from './pages/Support';
 import ManageRsvp from './pages/ManageRsvp';
 import CreateInvitation from './pages/CreateInvitation';
 import BabyShowerWording from './pages/BabyShowerWording';
+import BabyShowerRsvpReminder from './pages/BabyShowerRsvpReminder';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/create" element={<CreateInvitation />} />
         <Route path="/baby-shower-wording" element={<BabyShowerWording />} />
+        <Route path="/baby-shower-rsvp-reminder" element={<BabyShowerRsvpReminder />} />
         <Route path="/baby-shower-rsvp" element={<BabyShowerLanding />} />
         <Route path="/login" element={<Login />} />
         <Route path="/upgrade" element={<Upgrade />} />

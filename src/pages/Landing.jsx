@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../lib/useAuth';
-import { usePageTitle } from '../lib/usePageTitle';
+import { useSeoMetadata } from '../lib/useSeoMetadata';
 import { trackFunnelEvent } from '../lib/funnelAnalytics';
 import celebrationImage from '../assets/family-celebration-hero-v2.png';
 import stationeryImage from '../assets/landing-stationery.png';
@@ -9,13 +9,13 @@ import InvitationDemo from '../components/InvitationDemo';
 
 export default function Landing() {
   const { user } = useAuth();
-  usePageTitle('RSVP pages for family milestones');
+  useSeoMetadata({
+    title: 'Attendaa | RSVP pages for family milestones',
+    description: 'Create a beautiful RSVP page for baby showers, birthdays, graduations, reunions, and the family milestones worth gathering for.',
+    path: '/',
+  });
 
   useEffect(() => {
-    document.querySelector('meta[name="description"]')?.setAttribute(
-      'content',
-      'Create a beautiful RSVP page for baby showers, birthdays, graduations, reunions, and the family milestones worth gathering for.'
-    );
     void trackFunnelEvent('landing_view');
 
     const sections = document.querySelectorAll('.landing-reveal');
@@ -96,6 +96,7 @@ export default function Landing() {
       <section className="landing-final-cta landing-reveal">
         <h2>Ready to make your next family milestone feel special?</h2>
         <Link className="primary-btn landing-primary" to={startLink} onClick={() => void trackFunnelEvent('landing_cta_clicked', { placement: 'footer' }, user?.id)}>Create your free event</Link>
+        <p>Planning a shower? Explore the <Link to="/baby-shower-rsvp">baby shower RSVP guide</Link>, <Link to="/baby-shower-wording">invitation wording tool</Link>, and <Link to="/baby-shower-rsvp-reminder">RSVP reminder examples</Link>.</p>
         <Link className="landing-help-link" to="/help">Need a hand? Contact Attendaa support</Link>
       </section>
     </main>

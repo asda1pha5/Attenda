@@ -20,7 +20,7 @@ export function analyticsPath(path) {
   if (path.startsWith('/e/')) return '/e/:slug';
   if (path.startsWith('/rsvp/')) return '/rsvp/:slug/manage';
   if (/^\/(hub|admin)\/edit\//.test(path)) return path.replace(/\/edit\/.*/, '/edit/:id');
-  return ['/', '/create', '/login', '/upgrade', '/hub', '/hub/new', '/admin', '/admin/new', '/baby-shower-rsvp', '/baby-shower-wording', '/help'].includes(path) ? path : '/other';
+  return ['/', '/create', '/login', '/upgrade', '/hub', '/hub/new', '/admin', '/admin/new', '/baby-shower-rsvp', '/baby-shower-wording', '/baby-shower-rsvp-reminder', '/help'].includes(path) ? path : '/other';
 }
 export function safeProperties(properties) {
   return Object.fromEntries(['placement', 'style', 'template', 'entry', 'experiment', 'tone'].filter((key) => campaignToken(properties[key])).map((key) => [key, campaignToken(properties[key])]));

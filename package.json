@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-seo-pages.mjs",
     "preview": "vite preview",
     "test:conversion": "node --test tests/conversion.test.mjs tests/upgrade.test.mjs tests/payment.test.mjs tests/payment-handlers.test.mjs scripts/content-queue.test.mjs",
     "test:conversion:sql": "node --test tests/payment-sql.test.mjs",
-    "test:conversion:browser": "node tests/browser-conversion.mjs"
+    "test:conversion:browser": "node tests/browser-conversion.mjs",
+    "test:seo": "node --test tests/seo-pages.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

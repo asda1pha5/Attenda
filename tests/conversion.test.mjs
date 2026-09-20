@@ -72,6 +72,7 @@ test('analytics excludes URLs, emails, private paths and payload fields', () => 
   assert.deepEqual(sanitizeAttribution({ utm_source: 'person@example.com', utm_content: 'https://secret', utm_medium: '1234567890', utm_campaign: 'safe-campaign' }), { source: null, medium: null, content: null, campaign: 'safe-campaign' });
   assert.equal(analyticsPath('/e/private-host-name'), '/e/:slug');
   assert.equal(analyticsPath('/hub/edit/private-id'), '/hub/edit/:id');
+  assert.equal(analyticsPath('/baby-shower-rsvp-reminder'), '/baby-shower-rsvp-reminder');
   assert.deepEqual(safeProperties({ title: 'Private', email: 'private', experiment: 'baby-wording-v1' }), { experiment: 'baby-wording-v1' });
   assert.doesNotThrow(() => captureAttribution('?utm_source=pinterest', broken));
 });

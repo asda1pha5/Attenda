@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { usePageTitle } from '../lib/usePageTitle';
+import { useSeoMetadata } from '../lib/useSeoMetadata';
 import { useAuth } from '../lib/useAuth';
 
 const initialForm = { name: '', email: '', subject: '', message: '', company: '' };
@@ -11,7 +11,12 @@ export default function Support() {
   const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState('');
   const [sending, setSending] = useState(false);
-  usePageTitle('Help & support');
+  useSeoMetadata({
+    title: 'Attendaa Help | RSVP page support',
+    description: 'Get help creating, sharing, or updating an Attendaa RSVP page. Guests can RSVP without an account, and hosts can update event details anytime.',
+    path: '/help',
+    robots: 'noindex,follow',
+  });
 
   const signedIn = Boolean(user?.email);
   const accountName = profile?.full_name || user?.user_metadata?.full_name || 'Attendaa member';

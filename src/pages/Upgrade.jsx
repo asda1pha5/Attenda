@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/useAuth';
-import { usePageTitle } from '../lib/usePageTitle';
+import { useSeoMetadata } from '../lib/useSeoMetadata';
 import { supabase } from '../lib/supabaseClient';
 import { getCheckoutAttribution, trackFunnelEvent } from '../lib/funnelAnalytics';
 import signatureMark from '../assets/attendaa-signature-mark.png';
@@ -42,7 +42,12 @@ export default function Upgrade() {
     ['KEEP IT FOR YOUR PEOPLE', 'Personal details stay personal.', 'Add an access code and remove Attendaa branding when you want the invitation to feel entirely yours.'],
     ['KEEP THE DAY CLOSE', 'The invitation can live on after “yes.”', 'Bring guests back with a reminder, collect their photos, and keep a guest book of the little moments.'],
   ];
-  usePageTitle('Attendaa Signature');
+  useSeoMetadata({
+    title: 'Attendaa Signature | A more personal RSVP page',
+    description: 'Make your invitation feel custom, keep it private, and bring guests back after the day. Attendaa Signature is $19 one time for one event—no subscription.',
+    path: '/upgrade',
+    image: '/marketing/attendaa-live-invitation-story.png',
+  });
   useEffect(() => {
     if (returnedFromCheckout && activation === 'active' && selectedEvent?.signature_pass_active === true) {
       navigate(`/hub/edit/${selectedEvent.id}?signature=active`, { replace: true });

@@ -13,7 +13,7 @@ function harness(query, responses, checkoutResponse = { data: { url: 'https://ch
   let params = new URLSearchParams(query);
   const jsx = (type, props) => ({ type, props });
   const boundaries = {
-    jsx, jsxs: jsx, Link: 'a', usePageTitle() {}, useNavigate: () => (path) => redirects.push(path), useAuth: () => ({ user: { id: 'owner' }, isPremium: true }),
+    jsx, jsxs: jsx, Link: 'a', useSeoMetadata() {}, useNavigate: () => (path) => redirects.push(path), useAuth: () => ({ user: { id: 'owner' }, isPremium: true }),
     useState(initial) { const index = cursor++; if (!(index in hooks)) hooks[index] = initial; return [hooks[index], (value) => { hooks[index] = typeof value === 'function' ? value(hooks[index]) : value; }]; },
     useRef(initial) { const index = cursor++; return hooks[index] ||= { current: initial }; },
     useEffect(callback, deps) { const index = cursor++; const previous = hooks[index]; if (!previous || deps.some((value, i) => value !== previous[i])) { hooks[index] = deps; pending.push(callback); } },

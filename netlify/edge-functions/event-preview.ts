@@ -10,6 +10,7 @@ function eventMeta(previewUrl: string) {
   const safeTitle = escapeHtml('You\'re invited with Attendaa');
   const description = 'A thoughtful invitation is waiting for you.';
   return `
+    <meta name="robots" content="noindex,nofollow" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="${safeTitle}" />
     <meta property="og:description" content="${description}" />
@@ -30,6 +31,7 @@ export default async (request: Request) => {
   let html = await appResponse.text();
 
   html = html
+    .replace(/\s*<meta name="robots"[^>]*>/, '')
     .replace(/\s*<meta property="og:title"[^>]*>/, '')
     .replace(/\s*<meta property="og:description"[^>]*>/, '')
     .replace(/\s*<meta name="twitter:card"[^>]*>/, '');

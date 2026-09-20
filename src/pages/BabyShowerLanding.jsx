@@ -1,16 +1,20 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../lib/useAuth';
-import { usePageTitle } from '../lib/usePageTitle';
+import { useSeoMetadata } from '../lib/useSeoMetadata';
 import { trackFunnelEvent } from '../lib/funnelAnalytics';
 import { babyShowerStyles } from '../lib/eventStylePresets';
 
 export default function BabyShowerLanding() {
   const { user } = useAuth();
-  usePageTitle('Baby Shower RSVP Website');
+  useSeoMetadata({
+    title: 'Baby Shower RSVP Website | Attendaa',
+    description: 'Create a beautiful baby shower RSVP website. Share every detail, collect responses, add your registry, and keep the celebration together.',
+    path: '/baby-shower-rsvp',
+    image: '/baby-shower-social-preview.png',
+  });
 
   useEffect(() => {
-    document.querySelector('meta[name="description"]')?.setAttribute('content', 'Create a beautiful baby shower RSVP website. Share every detail, collect responses, add your registry, and keep the celebration together.');
     void trackFunnelEvent('baby_shower_landing_view');
     void trackFunnelEvent('landing_view', { entry: 'baby-shower' });
   }, []);
@@ -32,7 +36,7 @@ export default function BabyShowerLanding() {
       </div>
     </section>
 
-    <p className="milestone-section">Need a starting point? <Link to="/baby-shower-wording">Try the free baby shower invitation wording tool</Link>.</p>
+    <p className="milestone-section">Need a starting point? <Link to="/baby-shower-wording">Try the free baby shower invitation wording tool</Link>. Already sent the invitations? Use these <Link to="/baby-shower-rsvp-reminder">warm RSVP reminder examples</Link>.</p>
     <section className="milestone-section" id="styles">
       <p className="landing-eyebrow">START WITH A FEELING</p><h2>Choose an invitation style, then make it yours.</h2>
       <div className="baby-template-grid">
